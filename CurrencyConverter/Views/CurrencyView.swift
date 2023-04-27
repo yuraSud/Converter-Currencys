@@ -3,9 +3,10 @@ import UIKit
 
 class CurrencyView: UIView {
 
-    private var exchangeRateSegmentedControl = UISegmentedControl()
+    var exchangeRateSegmentedControl = UISegmentedControl()
     let addCurrencyButton = UIButton(type: .system)
     let shareButton = UIButton(type: .system)
+    let currencyTable = CurrencyTableView(frame: .zero, style: .plain)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -18,14 +19,6 @@ class CurrencyView: UIView {
     }
     
 //MARK: - Functions:
-    
-    @objc func segmentAction(sender: UISegmentedControl) {
-        if sender.selectedSegmentIndex == 0 {
-           
-        } else if sender.selectedSegmentIndex == 1 {
-            
-        }
-    }
     
     private func configureView(){
         setSettingsView()
@@ -48,8 +41,9 @@ class CurrencyView: UIView {
     
     private func setUpView() {
         addSubview(exchangeRateSegmentedControl)
-        addSubview(addCurrencyButton)
         addSubview(shareButton)
+        addSubview(currencyTable)
+        addSubview(addCurrencyButton)
     }
     
     private func configExchangeRateSegmentedControl() {
@@ -61,7 +55,6 @@ class CurrencyView: UIView {
         exchangeRateSegmentedControl.selectedSegmentIndex = 0
         exchangeRateSegmentedControl.setTitleTextAttributes( [NSAttributedString.Key.foregroundColor: UIColor.white], for: .selected)
         exchangeRateSegmentedControl.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 18)], for: .normal)
-        exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
     }
     
     private func configAddCurrencyButton() {
@@ -87,11 +80,15 @@ class CurrencyView: UIView {
             exchangeRateSegmentedControl.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
             exchangeRateSegmentedControl.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -16),
             exchangeRateSegmentedControl.topAnchor.constraint(equalTo: self.topAnchor, constant: 16),
-            exchangeRateSegmentedControl.heightAnchor.constraint(equalToConstant: 40),
-
+            exchangeRateSegmentedControl.heightAnchor.constraint(equalToConstant: 50),
+            
+            currencyTable.topAnchor.constraint(equalTo: exchangeRateSegmentedControl.bottomAnchor, constant: 10),
+            currencyTable.leadingAnchor.constraint(equalTo: exchangeRateSegmentedControl.leadingAnchor),
+            currencyTable.trailingAnchor.constraint(equalTo: exchangeRateSegmentedControl.trailingAnchor),
+            currencyTable.bottomAnchor.constraint(equalTo: shareButton.topAnchor, constant: -20),
+            
             addCurrencyButton.heightAnchor.constraint(equalToConstant: 35),
             addCurrencyButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            //addCurrencyButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
             addCurrencyButton.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -40),
             
             shareButton.heightAnchor.constraint(equalToConstant: 25),

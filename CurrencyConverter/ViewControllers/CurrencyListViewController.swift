@@ -24,7 +24,7 @@ class CurrencyListViewController: UIViewController {
         title = "Currency"
         setupCurrencyTableView()
         setupLeftBarButton()
-        fetchDataSourceForTable()
+        fetchDataSourceForTable(model: currencys)
         configureSearchBar()
     }
     
@@ -48,17 +48,15 @@ class CurrencyListViewController: UIViewController {
         currencyTableView.layer.shadowOffset = .init(width: 0, height: 3)
     }
     
-    private func fetchDataSourceForTable() {
-        FetchWeatherManager().fetchCurrency(for: Date()) { model, error  in
-            guard let model = model else {return}
-            self.currencys = model.currencys
-            self.transformCur.createDataSourceHeaderAndSections(model: model)
+    private func fetchDataSourceForTable(model: [Currency]?) {
+            
+        guard let models = model else {return}
+        self.transformCur.createDataSourceHeaderAndSections(model: models)
             self.headerTitlesArray = self.transformCur.headerArray
             self.dataToSections = self.transformCur.sections
             DispatchQueue.main.async {
                 self.currencyTableView.reloadData()
             }
-        }
     }
     
     private func setupLeftBarButton() {
@@ -86,6 +84,7 @@ extension CurrencyListViewController: UITableViewDelegate {
         var currency: Currency!
         if searchController.isActive && searchController.searchBar.text != "" {
             currency = filteredDataToSections[indexPath.row]
+            dismiss(animated: false)
         } else {
             currency = dataToSections[indexPath.section][indexPath.row]
         }

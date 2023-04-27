@@ -3,8 +3,18 @@ import UIKit
 
 class StartViewController: UIViewController {
     
-    var currencysArray = [Currency]()
-    
+    var currencysFromInternet: [Currency]?
+    var currencysArray = [Currency]() {
+        didSet{
+            currencyView.addCurrencyButton.isHidden = currencysArray.count == 5 ? true : false
+            reloadTable()
+        }
+    }
+    var sale = true {
+        didSet{
+            currencyView.currencyTable.reloadData()
+        }
+    }
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
@@ -16,10 +26,11 @@ class StartViewController: UIViewController {
         view.backgroundColor = .white
         configureView()
         addTargetButtons()
+        fetchDataSourceForTable()
     }
     
     
-//MARK: - @objc functions:
+    //MARK: - @objc functions:
     
     @objc func addCurrency(){
         let listCurrencyVC = CurrencyListViewController()
@@ -27,10 +38,19 @@ class StartViewController: UIViewController {
         listCurrencyVC.completionChooseCurrency = { item in
             self.currencysArray.append(item)
         }
+        listCurrencyVC.currencys = currencysFromInternet
         navigationController?.present(navContrroler, animated: true)
     }
     
-//MARK: - Functions:
+    @objc func segmentAction(sender: UISegmentedControl) {
+        if sender.selectedSegmentIndex == 0 {
+           sale = true
+        } else if sender.selectedSegmentIndex == 1 {
+            sale = false
+        }
+    }
+    
+    //MARK: - Functions:
     private func configureView(){
         configBackgroundImageView()
         configAppNameLabel()
@@ -39,6 +59,7 @@ class StartViewController: UIViewController {
         configCurrencyView()
         setUpView()
         setConstraints()
+        setDelegateTable()
     }
     
     private func setUpView() {
@@ -49,8 +70,20 @@ class StartViewController: UIViewController {
         view.addSubview(currencyView)
     }
     
+    func setDelegateTable(){
+        currencyView.currencyTable.dataSource = self
+        currencyView.currencyTable.delegate = self
+    }
+    
     func addTargetButtons(){
         currencyView.addCurrencyButton.addTarget(self, action: #selector(addCurrency), for: .touchUpInside)
+        currencyView.exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
+    }
+    
+    func reloadTable(){
+        DispatchQueue.main.async {
+            self.currencyView.currencyTable.reloadData()
+        }
     }
     
     private func configBackgroundImageView() {
@@ -84,7 +117,7 @@ class StartViewController: UIViewController {
         nationalBankExchangeRateButton.layer.borderColor = UIColor.systemBlue.cgColor
         nationalBankExchangeRateButton.titleLabel?.font = .boldSystemFont(ofSize: 18)
         
-//        nationalBankExchangeRateButton.addTarget(self, action: #selector(), for: .touchUpInside)
+        //        nationalBankExchangeRateButton.addTarget(self, action: #selector(), for: .touchUpInside)
         
     }
     
@@ -92,8 +125,46 @@ class StartViewController: UIViewController {
         currencyView.translatesAutoresizingMaskIntoConstraints = false
     }
     
-//MARK: - Constraints
+    private func fetchDataSourceForTable() {
+        FetchWeatherManager().fetchCurrency(for: Date()) { model, error  in
+            guard let model = model else {return}
+            self.currencysFromInternet = model.currencys
+        }
+    }
+}
     
+//MARK: - UITableViewDelegate
+
+extension StartViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let cell = tableView.cellForRow(at: indexPath) as! MainCell
+        cell.currencyTextField.becomeFirstResponder()
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
+}
+
+//MARK: - UITableViewDataSource
+
+extension StartViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        currencysArray.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyTableView.mainCellID, for: indexPath) as? MainCell else { return UITableViewCell() }
+        
+        let currenc = currencysArray[indexPath.row]
+        
+        cell.setLabel(currency: currenc, sell: sale, nbu: false)
+        
+        return cell
+    }
+    
+}
+
+//MARK: - Constraints
+extension StartViewController {
     private func setConstraints() {
         NSLayoutConstraint.activate([
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -118,13 +189,5 @@ class StartViewController: UIViewController {
             currencyView.bottomAnchor.constraint(equalTo: lastUpdatedLabel.topAnchor, constant: -15)
         ])
     }
-    
-    
-    
-    
-   
-     
-
-
 }
 

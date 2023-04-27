@@ -5,10 +5,10 @@ struct TransformCurrency {
     var sections: [[Currency]] = [[]]
    private let popular = ["UAH","EUR","USD"]
     
-    mutating func createDataSourceHeaderAndSections(model: CurrencyModel){
+    mutating func createDataSourceHeaderAndSections(model: [Currency]){
         var popularArrayCurrencys: [Currency] = []
         
-        model.currencys.forEach{ value in
+        model.forEach{ value in
             headerArray.append(value.firstLetter)
             if popular.contains(value.currency) {
                 popularArrayCurrencys.append(value)
@@ -16,7 +16,7 @@ struct TransformCurrency {
         }
         headerArray = Array(Set(headerArray)).sorted()
         sections = headerArray.map { firstLet in
-            return model.currencys
+            return model
                 .filter { $0.firstLetter == firstLet }
                 .sorted { $0.currency < $1.currency }
         }
