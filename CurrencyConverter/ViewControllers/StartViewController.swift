@@ -1,35 +1,36 @@
-
-
 import UIKit
+
 
 class StartViewController: UIViewController {
     
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
-    private let dateAndTimeLabel = UILabel()
-    private let nationalBankExchangeRateButton = UIButton()
+    private let nationalBankExchangeRateButton = UIButton(type: .system)
     private let currencyView = CurrencyView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
-        setUpView()
+        configureView()
+    }
+    
+//MARK: - Functions:
+    
+    private func configureView(){
         configBackgroundImageView()
         configAppNameLabel()
         configLastUpdatedLabel()
-        configDateAndTimeLabel()
         configNationalBankExchangeRateButton()
         configCurrencyView()
+        setUpView()
         setConstraints()
-        
     }
     
     private func setUpView() {
         view.addSubview(backgroundImageView)
         backgroundImageView.addSubview(appNameLabel)
         view.addSubview(lastUpdatedLabel)
-        view.addSubview(dateAndTimeLabel)
         view.addSubview(nationalBankExchangeRateButton)
         view.addSubview(currencyView)
     }
@@ -49,23 +50,14 @@ class StartViewController: UIViewController {
     
     private func configLastUpdatedLabel() {
         lastUpdatedLabel.translatesAutoresizingMaskIntoConstraints = false
-        lastUpdatedLabel.text = "Last Updated"
+        lastUpdatedLabel.text = "Last Updated\n26.04.2023 12:43"
         lastUpdatedLabel.textColor = .systemGray
+        lastUpdatedLabel.numberOfLines = 2
         lastUpdatedLabel.textAlignment = .left
         lastUpdatedLabel.font = UIFont(name: "Regular", size: 12)
     }
     
-    private func configDateAndTimeLabel() {
-        dateAndTimeLabel.translatesAutoresizingMaskIntoConstraints = false
-        dateAndTimeLabel.textColor = .systemGray
-        dateAndTimeLabel.textAlignment = .left
-        dateAndTimeLabel.text = "dd.mm.yyyy hh:m"
-        dateAndTimeLabel.font = UIFont(name: "Regular", size: 12)
-        
-    }
-    
     private func configNationalBankExchangeRateButton() {
-        
         nationalBankExchangeRateButton.translatesAutoresizingMaskIntoConstraints = false
         nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
         nationalBankExchangeRateButton.setTitleColor(UIColor.systemBlue, for: .normal)
@@ -82,6 +74,8 @@ class StartViewController: UIViewController {
         currencyView.translatesAutoresizingMaskIntoConstraints = false
     }
     
+//MARK: - Constraints
+    
     private func setConstraints() {
         NSLayoutConstraint.activate([
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
@@ -93,10 +87,7 @@ class StartViewController: UIViewController {
             appNameLabel.leadingAnchor.constraint(equalTo: backgroundImageView.leadingAnchor, constant: 16),
             
             lastUpdatedLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            lastUpdatedLabel.bottomAnchor.constraint(equalTo: dateAndTimeLabel.topAnchor, constant: -1),
-            
-            dateAndTimeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            dateAndTimeLabel.bottomAnchor.constraint(equalTo: nationalBankExchangeRateButton.topAnchor, constant: -30),
+            lastUpdatedLabel.bottomAnchor.constraint(equalTo: nationalBankExchangeRateButton.topAnchor, constant: -40),
             
             nationalBankExchangeRateButton.heightAnchor.constraint(equalToConstant: 40),
             nationalBankExchangeRateButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -106,7 +97,7 @@ class StartViewController: UIViewController {
             currencyView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             currencyView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             currencyView.topAnchor.constraint(equalTo: appNameLabel.bottomAnchor, constant: 20),
-            currencyView.bottomAnchor.constraint(equalTo: lastUpdatedLabel.topAnchor, constant: -20)
+            currencyView.bottomAnchor.constraint(equalTo: lastUpdatedLabel.topAnchor, constant: -15)
         ])
     }
     

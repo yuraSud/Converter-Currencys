@@ -3,27 +3,21 @@ import UIKit
 
 class CurrencyView: UIView {
 
-    private let exchangeRateSegmentedControl = UISegmentedControl(items: ["Sell", "Buy"])
-    private let addCurrencyButton = UIButton()
-    private let shareButton = UIButton()
+    private var exchangeRateSegmentedControl = UISegmentedControl()
+    private let addCurrencyButton = UIButton(type: .system)
+    private let shareButton = UIButton(type: .system)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
         self.frame = frame
-        setSettingsView()
-        setUpView()
-        configExchangeRateSegmentedControl()
-        configAddCurrencyButton()
-        configShareButton()
-        
-        setConstraints()
-        
-
+        configureView()
     }
 
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+    
+//MARK: - Functions:
     
     @objc func segmentAction(sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
@@ -31,6 +25,15 @@ class CurrencyView: UIView {
         } else if sender.selectedSegmentIndex == 1 {
             
         }
+    }
+    
+    private func configureView(){
+        setSettingsView()
+        configExchangeRateSegmentedControl()
+        configAddCurrencyButton()
+        configShareButton()
+        setUpView()
+        setConstraints()
     }
     
     private func  setSettingsView() {
@@ -49,12 +52,13 @@ class CurrencyView: UIView {
         addSubview(shareButton)
     }
     
-
     private func configExchangeRateSegmentedControl() {
+        exchangeRateSegmentedControl = UISegmentedControl(items: ["Sell", "Buy"])
         exchangeRateSegmentedControl.translatesAutoresizingMaskIntoConstraints = false
         exchangeRateSegmentedControl.backgroundColor = .white
         exchangeRateSegmentedControl.selectedSegmentTintColor = .systemBlue
         exchangeRateSegmentedControl.layer.cornerRadius = 10
+        exchangeRateSegmentedControl.selectedSegmentIndex = 0
         exchangeRateSegmentedControl.setTitleTextAttributes( [NSAttributedString.Key.foregroundColor: UIColor.white], for: .selected)
         exchangeRateSegmentedControl.setTitleTextAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 18)], for: .normal)
         exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
@@ -65,7 +69,7 @@ class CurrencyView: UIView {
         addCurrencyButton.setTitle("Add Currency", for: .normal)
         addCurrencyButton.setImage(UIImage(named: "blue_plus"), for: .normal)
         addCurrencyButton.setTitleColor(UIColor.systemBlue, for: .normal)
-        addCurrencyButton.titleLabel?.font = .systemFont(ofSize: 13)
+        addCurrencyButton.titleLabel?.font = .systemFont(ofSize: 14)
        
 //        addCurrencyButton.addTarget(self, action: #selector(), for: .touchUpInside)
     }
@@ -76,7 +80,8 @@ class CurrencyView: UIView {
        
 //        shareButton.addTarget(self, action: #selector(), for: .touchUpInside)
     }
-    
+
+//MARK: - Constraints:
     private func setConstraints() {
         NSLayoutConstraint.activate([
             exchangeRateSegmentedControl.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
@@ -84,9 +89,9 @@ class CurrencyView: UIView {
             exchangeRateSegmentedControl.topAnchor.constraint(equalTo: self.topAnchor, constant: 16),
             exchangeRateSegmentedControl.heightAnchor.constraint(equalToConstant: 40),
 
-            addCurrencyButton.heightAnchor.constraint(equalToConstant: 30),
+            addCurrencyButton.heightAnchor.constraint(equalToConstant: 35),
             addCurrencyButton.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            addCurrencyButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
+            //addCurrencyButton.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 16),
             addCurrencyButton.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -40),
             
             shareButton.heightAnchor.constraint(equalToConstant: 25),
