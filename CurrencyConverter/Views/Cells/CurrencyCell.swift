@@ -1,7 +1,7 @@
 import UIKit
 
 class CurrencyCell: UITableViewCell {
-
+    
     let currencyLabel : UILabel = {
         let label = UILabel()
         label.font = .systemFont(ofSize: 17)

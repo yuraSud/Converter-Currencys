@@ -3,6 +3,8 @@ import UIKit
 
 class StartViewController: UIViewController {
     
+    var currencysArray = [Currency]()
+    
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
@@ -13,10 +15,22 @@ class StartViewController: UIViewController {
         super.viewDidLoad()
         view.backgroundColor = .white
         configureView()
+        addTargetButtons()
+    }
+    
+    
+//MARK: - @objc functions:
+    
+    @objc func addCurrency(){
+        let listCurrencyVC = CurrencyListViewController()
+        let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
+        listCurrencyVC.completionChooseCurrency = { item in
+            self.currencysArray.append(item)
+        }
+        navigationController?.present(navContrroler, animated: true)
     }
     
 //MARK: - Functions:
-    
     private func configureView(){
         configBackgroundImageView()
         configAppNameLabel()
@@ -33,6 +47,10 @@ class StartViewController: UIViewController {
         view.addSubview(lastUpdatedLabel)
         view.addSubview(nationalBankExchangeRateButton)
         view.addSubview(currencyView)
+    }
+    
+    func addTargetButtons(){
+        currencyView.addCurrencyButton.addTarget(self, action: #selector(addCurrency), for: .touchUpInside)
     }
     
     private func configBackgroundImageView() {

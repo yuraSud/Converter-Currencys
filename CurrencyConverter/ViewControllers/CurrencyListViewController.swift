@@ -2,12 +2,13 @@
 
 import UIKit
 
-class CurrencyViewController: UIViewController {
+class CurrencyListViewController: UIViewController {
    
     static let cellID = "CurrencyCell"
     
     var currencys: [Currency]?
-   
+    var completionChooseCurrency: ((Currency)->())?
+    
     private var headerTitlesArray: [String]?
     private var dataToSections: [[Currency]] = []
     private var filteredDataToSections: [Currency] = []
@@ -38,7 +39,7 @@ class CurrencyViewController: UIViewController {
         currencyTableView.delegate = self
         currencyTableView.dataSource = self
         view.addSubview(currencyTableView)
-        currencyTableView.register(CurrencyCell.self, forCellReuseIdentifier: CurrencyViewController.cellID)
+        currencyTableView.register(CurrencyCell.self, forCellReuseIdentifier: CurrencyListViewController.cellID)
         
         currencyTableView.backgroundColor = .clear
         currencyTableView.layer.shadowColor = UIColor.black.cgColor
@@ -79,16 +80,22 @@ class CurrencyViewController: UIViewController {
 }
 
 //MARK: - UITableViewDelegate
-extension CurrencyViewController: UITableViewDelegate {
+extension CurrencyListViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        let cell = tableView.cellForRow(at: indexPath) as? CurrencyCell
-        print(cell?.currencyLabel.text ?? "nil")
+        var currency: Currency!
+        if searchController.isActive && searchController.searchBar.text != "" {
+            currency = filteredDataToSections[indexPath.row]
+        } else {
+            currency = dataToSections[indexPath.section][indexPath.row]
+        }
+        completionChooseCurrency?(currency)
+        back()
     }
 }
 
 //MARK: - UITableViewDataSource
-extension CurrencyViewController: UITableViewDataSource {
+extension CurrencyListViewController: UITableViewDataSource {
     
     func numberOfSections(in tableView: UITableView) -> Int {
         if searchController.isActive && searchController.searchBar.text != "" {
@@ -105,7 +112,7 @@ extension CurrencyViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyViewController.cellID, for: indexPath) as? CurrencyCell else {return UITableViewCell()}
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyListViewController.cellID, for: indexPath) as? CurrencyCell else {return UITableViewCell()}
         
         var currency: Currency!
         
@@ -129,7 +136,7 @@ extension CurrencyViewController: UITableViewDataSource {
 
 //MARK: - Search Controller Configuration
 
-extension CurrencyViewController: UISearchControllerDelegate, UISearchBarDelegate {
+extension CurrencyListViewController: UISearchControllerDelegate, UISearchBarDelegate {
     
     func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         filterContentForSearchText(searchText)

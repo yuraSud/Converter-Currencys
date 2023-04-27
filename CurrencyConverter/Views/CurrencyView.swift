@@ -4,8 +4,8 @@ import UIKit
 class CurrencyView: UIView {
 
     private var exchangeRateSegmentedControl = UISegmentedControl()
-    private let addCurrencyButton = UIButton(type: .system)
-    private let shareButton = UIButton(type: .system)
+    let addCurrencyButton = UIButton(type: .system)
+    let shareButton = UIButton(type: .system)
     
     override init(frame: CGRect) {
         super.init(frame: frame)
