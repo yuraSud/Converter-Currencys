@@ -4,22 +4,27 @@ import UIKit
 class StartViewController: UIViewController {
     
     var currencysFromInternet: [Currency]?
+    
     var currencysArray = [Currency]() {
         didSet{
             currencyView.addCurrencyButton.isHidden = currencysArray.count == 5 ? true : false
             reloadTable()
         }
     }
+    
     var sale = true {
         didSet{
-            currencyView.currencyTable.reloadData()
+            reloadTable()
         }
     }
+    
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
     private let nationalBankExchangeRateButton = UIButton(type: .system)
     private let currencyView = CurrencyView()
+    private var valueTF: Double = 1
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -137,9 +142,12 @@ class StartViewController: UIViewController {
 
 extension StartViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: false)
+        //guard indexPath.row == 0 else {return}
         let cell = tableView.cellForRow(at: indexPath) as! MainCell
+        guard cell.currency?.currency == "UAH" else {return}
         cell.currencyTextField.becomeFirstResponder()
-        tableView.deselectRow(at: indexPath, animated: true)
+        cell.currencyTextField.delegate = self
     }
 }
 
@@ -155,12 +163,27 @@ extension StartViewController: UITableViewDataSource {
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyTableView.mainCellID, for: indexPath) as? MainCell else { return UITableViewCell() }
         
         let currenc = currencysArray[indexPath.row]
-        
-        cell.setLabel(currency: currenc, sell: sale, nbu: false)
+        cell.currency = currenc
+        cell.setLabel(currency: currenc, sell: sale, valueFromTF: valueTF)
         
         return cell
     }
-    
+}
+
+//MARK: - TextFieldDelegate
+extension StartViewController: UITextFieldDelegate {
+
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        guard let value = textField.text,
+              let valueTFDouble = Double(value)
+        else {return true}
+        valueTF = valueTFDouble
+        reloadTable()
+        return true
+    }
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        view.endEditing(true)
+    }
 }
 
 //MARK: - Constraints
