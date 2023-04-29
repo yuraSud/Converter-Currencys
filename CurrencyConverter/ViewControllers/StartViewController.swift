@@ -12,12 +12,19 @@ class StartViewController: UIViewController {
         }
     }
     
-    var sale = true {
+    var saleCourse = true {
         didSet{
             reloadTable()
         }
     }
     
+    var nbuCourse = false {
+        didSet{
+            reloadTable()
+        }
+    }
+    
+    var datepicker: DatePickerView!
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
@@ -49,10 +56,35 @@ class StartViewController: UIViewController {
     
     @objc func segmentAction(sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
-           sale = true
+           saleCourse = true
         } else if sender.selectedSegmentIndex == 1 {
-            sale = false
+            saleCourse = false
         }
+    }
+    
+    @objc func currencyNbuFromDate(){
+        if !nbuCourse {
+            datepicker = DatePickerView(frame: self.view.frame)
+            datepicker.cancelButton.addTarget(self, action: #selector(closeDatePicker), for: .touchUpInside)
+            datepicker.okButton.addTarget(self, action: #selector(pushDateFromPicker), for: .touchUpInside)
+            view.addSubview(datepicker)
+        } else {
+            nbuCourse = false
+            nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
+        }
+    }
+    
+    @objc func pushDateFromPicker(){
+        print(datepicker.formateDate())
+        nationalBankExchangeRateButton.setTitle("Return to course PB", for: .normal)
+        nbuCourse = true
+        
+// учесть что запрос будет по дате, обновление идет по изменения этой переменной!!!
+        closeDatePicker()
+    }
+    
+    @objc func closeDatePicker(){
+        datepicker.removeFromSuperview()
     }
     
     //MARK: - Functions:
@@ -83,6 +115,7 @@ class StartViewController: UIViewController {
     func addTargetButtons(){
         currencyView.addCurrencyButton.addTarget(self, action: #selector(addCurrency), for: .touchUpInside)
         currencyView.exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
+        nationalBankExchangeRateButton.addTarget(self, action: #selector(currencyNbuFromDate), for: .touchUpInside)
     }
     
     func reloadTable(){
@@ -121,9 +154,6 @@ class StartViewController: UIViewController {
         nationalBankExchangeRateButton.layer.cornerRadius = 15
         nationalBankExchangeRateButton.layer.borderColor = UIColor.systemBlue.cgColor
         nationalBankExchangeRateButton.titleLabel?.font = .boldSystemFont(ofSize: 18)
-        
-        //        nationalBankExchangeRateButton.addTarget(self, action: #selector(), for: .touchUpInside)
-        
     }
     
     private func configCurrencyView() {
@@ -164,8 +194,7 @@ extension StartViewController: UITableViewDataSource {
         
         let currenc = currencysArray[indexPath.row]
         cell.currency = currenc
-        cell.setLabel(currency: currenc, sell: sale, valueFromTF: valueTF)
-        
+        cell.setLabel(currency: currenc, sell: saleCourse,nbu: nbuCourse, valueFromTF: valueTF)
         return cell
     }
 }
