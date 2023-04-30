@@ -1,13 +1,18 @@
 import Foundation
+import CoreData
 
 struct FetchWeatherManager {
     
-    func fetchCurrency(for date: Date, completionhandler: @escaping (CurrencyModel?,Error?)->()){
+    lazy var coreData = CoreDataManager.instance
+    
+    func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?)->()){
         
         let session = URLSession.shared
-        guard let url = URL(string: "https://api.privatbank.ua/p24api/exchange_rates?json&date=25.04.2023") else {
+        guard let url = URL(string: "https://api.privatbank.ua/p24api/exchange_rates?json&date=\(date.formateDate())") else {
             completionhandler(nil,NetworkRequestError.notValidURL)
             return}
+        
+        print(url)
         
         let task = session.dataTask(with: url) { (data, response, error) in
             
@@ -20,14 +25,23 @@ struct FetchWeatherManager {
                !(200...299).contains(response.statusCode) {
                 completionhandler(nil, NetworkRequestError.statusCode)
             }
-            
-            if let currency = parseJSON(data: data) {
-                completionhandler(currency, nil)
-            }
+            print("Получил дата с интернета")
+            //if let currency = parseJSON(data: data) {
+                completionhandler(data, nil)
+            //}
         }
         task.resume()
     }
     
+    func parseCurrency(_ jsonData: Data?, completionhandler: @escaping (CurrencyModel?)->()){
+        guard let data = jsonData else {
+            completionhandler(nil)
+            return
+        }
+        if let currency = parseJSON(data: data) {
+            completionhandler(currency)
+        }
+    }
     
     private func parseJSON(data: Data) -> CurrencyModel? {
         

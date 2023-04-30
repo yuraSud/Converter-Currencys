@@ -1,5 +1,5 @@
 import UIKit
-
+import CoreData
 
 class StartViewController: UIViewController {
     
@@ -7,7 +7,9 @@ class StartViewController: UIViewController {
     
     var currencysArray = [Currency]() {
         didSet{
-            currencyView.addCurrencyButton.isHidden = currencysArray.count == 5 ? true : false
+            DispatchQueue.main.async {
+                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == 5 ? true : false
+            }
             reloadTable()
         }
     }
@@ -23,13 +25,14 @@ class StartViewController: UIViewController {
             reloadTable()
         }
     }
-    
-    var datepicker: DatePickerView!
+    var arrayCurrencysFromCoreData = [String]()
+    private let currencyView = CurrencyView()
+    private var datepicker: DatePickerView!
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     private let lastUpdatedLabel = UILabel()
     private let nationalBankExchangeRateButton = UIButton(type: .system)
-    private let currencyView = CurrencyView()
+    private let coreData = CoreDataManager.instance
     private var valueTF: Double = 1
     
     
@@ -38,7 +41,7 @@ class StartViewController: UIViewController {
         view.backgroundColor = .white
         configureView()
         addTargetButtons()
-        fetchDataSourceForTable()
+        fetchDataSourceForTableFromCoreData(Date())
     }
     
     
@@ -48,7 +51,10 @@ class StartViewController: UIViewController {
         let listCurrencyVC = CurrencyListViewController()
         let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
         listCurrencyVC.completionChooseCurrency = { item in
-            self.currencysArray.append(item)
+            if self.currencysArray.count < 5 {
+                self.currencysArray.append(item)
+                self.coreData.newCurrencyCore(item)
+            }
         }
         listCurrencyVC.currencys = currencysFromInternet
         navigationController?.present(navContrroler, animated: true)
@@ -75,10 +81,10 @@ class StartViewController: UIViewController {
     }
     
     @objc func pushDateFromPicker(){
-        print(datepicker.formateDate())
+        print(datepicker.datePicker.date.formateDate(), "берем новую дату")
         nationalBankExchangeRateButton.setTitle("Return to course PB", for: .normal)
         nbuCourse = true
-        
+        fetchDataSourceForTableFromCoreData(datepicker.datePicker.date)
 // учесть что запрос будет по дате, обновление идет по изменения этой переменной!!!
         closeDatePicker()
     }
@@ -160,11 +166,61 @@ class StartViewController: UIViewController {
         currencyView.translatesAutoresizingMaskIntoConstraints = false
     }
     
-    private func fetchDataSourceForTable() {
-        FetchWeatherManager().fetchCurrency(for: Date()) { model, error  in
-            guard let model = model else {return}
-            self.currencysFromInternet = model.currencys
+    private func fetchDataSourceForTableFromInternet(_ date: Date) {
+        FetchWeatherManager().fetchCurrency(for: date) { data, error  in
+            self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
+            self.transformDataToCurrencyModel(data)
+            self.addStoreCurrencystoArrayTable(self.arrayCurrencysFromCoreData)
         }
+    }
+    
+    private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
+        //Проверка на то что в хранилище есть данные
+       
+        let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
+        arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
+      
+        print(arrayCurrencysFromCoreData, "Array bykv")
+       
+        guard let jsonData = jsonCurrencys?.jsonData else {
+            print("дата не получил с коре")
+        //Если отсутствуют то берем данные с интернета
+            fetchDataSourceForTableFromInternet(dateToFetch)
+            return}
+        
+        // Берем данные с кореДата и трансформируем их
+        transformDataToCurrencyModel(jsonData)
+        addStoreCurrencystoArrayTable(arrayCurrencysFromCoreData)
+    }
+    
+    private func transformDataToCurrencyModel(_ jsonData: Data?) {
+        FetchWeatherManager().parseCurrency(jsonData) { model in
+            self.currencysFromInternet = model?.currencys
+            print(model?.currencys[8].purchaseRate, "euro")
+        }
+    }
+    
+    private func addStoreCurrencystoArrayTable(_ arrayCurrencysFromCoreData:[String]){
+        
+        guard let fullArrayCurrency = currencysFromInternet else {return}
+        
+//        fullArrayCurrency.forEach{ item in
+//            let value = item.currency
+//            if arrayCurrencysFromCoreData.contains(value) {
+//                currencysArray.append(item)
+//                print(currencysArray.count, "array Table count")
+//            }
+//        }
+        currencysArray.removeAll()
+        
+        arrayCurrencysFromCoreData.forEach{ item in
+            for currency in fullArrayCurrency {
+                if currency.currency == item {
+                    currencysArray.append(currency)
+                }
+            }
+        }
+        //reloadTable()
     }
 }
     
