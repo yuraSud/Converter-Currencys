@@ -203,14 +203,6 @@ class StartViewController: UIViewController {
     private func addStoreCurrencystoArrayTable(_ arrayCurrencysFromCoreData:[String]){
         
         guard let fullArrayCurrency = currencysFromInternet else {return}
-        
-//        fullArrayCurrency.forEach{ item in
-//            let value = item.currency
-//            if arrayCurrencysFromCoreData.contains(value) {
-//                currencysArray.append(item)
-//                print(currencysArray.count, "array Table count")
-//            }
-//        }
         currencysArray.removeAll()
         
         arrayCurrencysFromCoreData.forEach{ item in

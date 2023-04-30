@@ -64,6 +64,15 @@ class CoreDataManager {
         saveContext()
     }
     
+    func newCurrencyCoreFromString(_ currencyName: String) {
+        
+        let newCurrencyCore = CurrencyCore(context: context)
+        newCurrencyCore.currencyName = currencyName
+        newCurrencyCore.idTime = Date()
+        print("Create currencyCoreForString")
+        saveContext()
+    }
+    
     func newjsonCurrencys(jsonCurrencyData: Data?, date: Date) {
         
         let newjsonCurrencys = JsonCurrencys(context: context)
