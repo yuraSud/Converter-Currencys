@@ -33,6 +33,9 @@ class MainCell: UITableViewCell {
         stack.axis = .horizontal
         currencyTextField.borderStyle = .roundedRect
         currencyTextField.backgroundColor = .secondarySystemBackground
+        currencyTextField.keyboardType = .numberPad
+        currencyTextField.returnKeyType = .done
+        currencyTextField.addDoneButtonToKeyboard(myAction: #selector(currencyTextField.resignFirstResponder))
         currencyTextField.setContentHuggingPriority(.init(200), for: .horizontal)
         stack.distribution = .fill
         stack.spacing = 30

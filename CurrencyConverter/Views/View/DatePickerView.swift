@@ -65,6 +65,7 @@ class DatePickerView: UIView {
         datePicker.maximumDate = Date()
         datePicker.minimumDate = minimumDate
         datePicker.datePickerMode = .date
+        datePicker.locale = Locale(identifier: "uk")
         
     }
     
