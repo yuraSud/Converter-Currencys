@@ -3,29 +3,8 @@ import CoreData
 
 class StartViewController: UIViewController {
     
-    var currencysFromInternet: [Currency]?
-    
-    var currencysArray = [Currency]() {
-        didSet{
-            DispatchQueue.main.async {
-                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == 5 ? true : false
-            }
-            reloadTable()
-        }
-    }
-    
-    var saleCourse = true {
-        didSet{
-            reloadTable()
-        }
-    }
-    
-    var nbuCourse = false {
-        didSet{
-            reloadTable()
-        }
-    }
-    var arrayCurrencysFromCoreData = [String]()
+    private var currencysFromInternet: [Currency]?
+    private var arrayCurrencysFromCoreData = [String]()
     private let currencyView = CurrencyView()
     private var datepicker: DatePickerView!
     private let backgroundImageView = UIImageView()
@@ -35,6 +14,32 @@ class StartViewController: UIViewController {
     private let coreData = CoreDataManager.instance
     private var valueTF: Double = 1
     
+    private var currencysArray = [Currency]() {
+        didSet{
+            DispatchQueue.main.async {
+                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == 5 ? true : false
+            }
+            reloadTable()
+        }
+    }
+    private var saleCourse = true {
+        didSet{
+            reloadTable()
+        }
+    }
+    private var nbuCourse = false {
+        didSet{
+            reloadTable()
+        }
+    }
+    private var dateFetchToLabel: Date! {
+        didSet{
+            updateDateLabel(dateUpdate: dateFetchToLabel)
+        }
+    }
+    
+    
+//MARK: - Life cycle App:
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -47,7 +52,7 @@ class StartViewController: UIViewController {
     
     //MARK: - @objc functions:
     
-    @objc func addCurrency(){
+    @objc private func addCurrency(){
         let listCurrencyVC = CurrencyListViewController()
         let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
         listCurrencyVC.completionChooseCurrency = { item in
@@ -60,7 +65,7 @@ class StartViewController: UIViewController {
         navigationController?.present(navContrroler, animated: true)
     }
     
-    @objc func segmentAction(sender: UISegmentedControl) {
+    @objc private func segmentAction(sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
            saleCourse = true
         } else if sender.selectedSegmentIndex == 1 {
@@ -68,7 +73,7 @@ class StartViewController: UIViewController {
         }
     }
     
-    @objc func currencyNbuFromDate(){
+    @objc private func currencyNbuFromDate(){
         if !nbuCourse {
             datepicker = DatePickerView(frame: self.view.frame)
             datepicker.cancelButton.addTarget(self, action: #selector(closeDatePicker), for: .touchUpInside)
@@ -80,16 +85,15 @@ class StartViewController: UIViewController {
         }
     }
     
-    @objc func pushDateFromPicker(){
-        print(datepicker.datePicker.date.formateDate(), "берем новую дату")
+    @objc private func pushDateFromPicker(){
+        print(datepicker.datePicker.date.formateDateToJsonRequest(), "берем новую дату")
         nationalBankExchangeRateButton.setTitle("Return to course PB", for: .normal)
         nbuCourse = true
         fetchDataSourceForTableFromCoreData(datepicker.datePicker.date)
-// учесть что запрос будет по дате, обновление идет по изменения этой переменной!!!
         closeDatePicker()
     }
     
-    @objc func closeDatePicker(){
+    @objc private func closeDatePicker(){
         datepicker.removeFromSuperview()
     }
     
@@ -149,7 +153,12 @@ class StartViewController: UIViewController {
         lastUpdatedLabel.textColor = .systemGray
         lastUpdatedLabel.numberOfLines = 2
         lastUpdatedLabel.textAlignment = .left
-        lastUpdatedLabel.font = UIFont(name: "Regular", size: 12)
+        lastUpdatedLabel.font = .systemFont(ofSize: 14)
+    }
+    private func updateDateLabel(dateUpdate: Date){
+        DispatchQueue.main.async {
+            self.lastUpdatedLabel.text = "Last Updated\n\(dateUpdate.formateDateToUpdateLabel())"
+        }
     }
     
     private func configNationalBankExchangeRateButton() {
@@ -171,6 +180,7 @@ class StartViewController: UIViewController {
             self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
             self.transformDataToCurrencyModel(data)
             self.addStoreCurrencystoArrayTable(self.arrayCurrencysFromCoreData)
+            self.dateFetchToLabel = date
         }
     }
     
@@ -179,6 +189,7 @@ class StartViewController: UIViewController {
        
         let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
         arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
+        
       
         print(arrayCurrencysFromCoreData, "Array bykv")
        
@@ -189,6 +200,7 @@ class StartViewController: UIViewController {
             return}
         
         // Берем данные с кореДата и трансформируем их
+        dateFetchToLabel = jsonCurrencys?.dateFetch
         transformDataToCurrencyModel(jsonData)
         addStoreCurrencystoArrayTable(arrayCurrencysFromCoreData)
     }
@@ -196,7 +208,7 @@ class StartViewController: UIViewController {
     private func transformDataToCurrencyModel(_ jsonData: Data?) {
         FetchWeatherManager().parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
-            print(model?.currencys[8].purchaseRate, "euro")
+            print(model?.currencys[8].purchaseRate ?? "jjj", "euro")
         }
     }
     
@@ -212,7 +224,6 @@ class StartViewController: UIViewController {
                 }
             }
         }
-        //reloadTable()
     }
 }
     
@@ -227,6 +238,18 @@ extension StartViewController: UITableViewDelegate {
         cell.currencyTextField.becomeFirstResponder()
         cell.currencyTextField.delegate = self
     }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+       
+        guard let cellCurrency = (tableView.cellForRow(at: indexPath) as! MainCell).currency else {return}
+        
+        if editingStyle == .delete && indexPath.row != 0 {
+            print("delete row")
+            currencysArray.remove(at: indexPath.row)
+            coreData.deleteCurrencyCore(currencyToDelete: cellCurrency)
+        }
+    }
+      //  self.tableView.deleteRows(at: [indexPath], with: .automatic)
 }
 
 //MARK: - UITableViewDataSource

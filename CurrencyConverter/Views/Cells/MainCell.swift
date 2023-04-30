@@ -61,7 +61,6 @@ class MainCell: UITableViewCell {
     
     func conversionValue(valueCurrency: Double?, valueTF: Double) -> String {
         guard let value = valueCurrency else {return "Value not received"}
-        
         return String(format: "%.3f", (valueTF / value))
     }
     

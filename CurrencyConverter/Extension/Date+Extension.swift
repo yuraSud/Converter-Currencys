@@ -12,9 +12,15 @@ extension Date {
         self.init(timeInterval:0, since:date)
     }
     
-    func formateDate() -> String{
+    func formateDateToJsonRequest() -> String{
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "dd.MM.yyyy"
+        return dateFormatter.string(from: self)
+    }
+    
+    func formateDateToUpdateLabel() -> String{
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "dd.MM.yyyy HH:mm"
         return dateFormatter.string(from: self)
     }
     

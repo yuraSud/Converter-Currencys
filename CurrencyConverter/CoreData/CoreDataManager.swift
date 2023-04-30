@@ -85,9 +85,20 @@ class CoreDataManager {
         //return newjsonCurrencys
     }
     
-    func deleteCurrencyCore(currencyCore: CurrencyCore){
-        context.delete(currencyCore)
-        saveContext()
+    func deleteCurrencyCore(currencyToDelete: Currency){
+        var currencyCores: [CurrencyCore] = []
+        let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
+        do{
+            currencyCores = try context.fetch(fetchRequest)
+        } catch {
+            print("not fetch users")
+        }
+        for item in currencyCores {
+            if item.currencyName == currencyToDelete.currency {
+                context.delete(item)
+                saveContext()
+            }
+        }
     }
     
     

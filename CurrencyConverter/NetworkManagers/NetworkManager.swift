@@ -8,7 +8,7 @@ struct FetchWeatherManager {
     func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?)->()){
         
         let session = URLSession.shared
-        guard let url = URL(string: "https://api.privatbank.ua/p24api/exchange_rates?json&date=\(date.formateDate())") else {
+        guard let url = URL(string: "https://api.privatbank.ua/p24api/exchange_rates?json&date=\(date.formateDateToJsonRequest())") else {
             completionhandler(nil,NetworkRequestError.notValidURL)
             return}
         
