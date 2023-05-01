@@ -42,7 +42,8 @@ class MainCell: UITableViewCell {
         addSubview(stack)
     }
     
-    func setLabel(currency: Currency, sell: Bool, nbu: Bool = false, valueFromTF: Double){
+    func setLabel(sell: Bool, nbu: Bool = false, valueFromTF: Double){
+        guard let currency = currency else {return}
         currencyLabel.text = currency.currency + "  👉"
       
         if currency.currency == "UAH"{

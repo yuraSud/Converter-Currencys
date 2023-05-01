@@ -14,7 +14,7 @@ class StartViewController: UIViewController {
     private let coreData = CoreDataManager.instance
     private var valueTF: Double = 1
     
-    private var currencysArray = [Currency]() {
+    private var currencysArray:[Currency] = [] {
         didSet{
             DispatchQueue.main.async {
                 self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == 5 ? true : false
@@ -198,11 +198,30 @@ class StartViewController: UIViewController {
     
     private func fetchDataSourceForTableFromInternet(_ date: Date) {
         FetchWeatherManager().fetchCurrency(for: date) { data, error  in
+            guard let data = data else {
+                print("!!! данные с интернета не получены")
+                DispatchQueue.main.async {
+                    self.alertNoInternet()
+                }
+                return
+                }
+            print("данные с интернета получены")
             self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
-            self.transformDataToCurrencyModel(data)
-            self.addStoreCurrencystoArrayTable(self.arrayCurrencysFromCoreData)
+            self.transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(data)
+            self.addStoreCurrencystoCurrencyArrayForTable(self.arrayCurrencysFromCoreData)
             self.dateFetchToLabel = date
         }
+    }
+    
+    private func alertNoInternet(){
+        let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
+        let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
+            self.lastUpdatedLabel.text = "Not internet\nConnection"
+            self.currencysArray = []
+            self.reloadTable()
+        }
+        alert.addAction(actionOk)
+        present(alert, animated: true)
     }
     
     private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
@@ -221,18 +240,18 @@ class StartViewController: UIViewController {
         
         // Берем данные с кореДата и трансформируем их
         dateFetchToLabel = jsonCurrencys?.dateFetch
-        transformDataToCurrencyModel(jsonData)
-        addStoreCurrencystoArrayTable(arrayCurrencysFromCoreData)
+        transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(jsonData)
+        addStoreCurrencystoCurrencyArrayForTable(arrayCurrencysFromCoreData)
     }
     
-    private func transformDataToCurrencyModel(_ jsonData: Data?) {
+    private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {
         FetchWeatherManager().parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
             print(model?.currencys[8].purchaseRate ?? "jjj", "euro")
         }
     }
     
-    private func addStoreCurrencystoArrayTable(_ arrayCurrencysFromCoreData:[String]){
+    private func addStoreCurrencystoCurrencyArrayForTable(_ arrayCurrencysFromCoreData:[String]){
         
         guard let fullArrayCurrency = currencysFromInternet else {return}
         currencysArray.removeAll()
@@ -244,6 +263,7 @@ class StartViewController: UIViewController {
                 }
             }
         }
+        print(currencysArray.count, "currencyArray Count")
     }
     
      private func shareScreenShotAndText(){
@@ -294,8 +314,9 @@ class StartViewController: UIViewController {
         self.present(activityViewController, animated: true, completion: nil)
     }
     
-    func createTextToShare(_ array:[Currency]) -> String {
+    func createTextToShare(_ array:[Currency]?) -> String {
         var resultString = ""
+        guard let array = array else {return ""}
         for item in array {
             if item.currency != "UAH" {
                 let str = "1 \(item.currency) = \(String(format: "%.3f", item.saleRateNB ?? 0)) UAH\n"
@@ -314,6 +335,7 @@ extension StartViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: false)
         //guard indexPath.row == 0 else {return}
         let cell = tableView.cellForRow(at: indexPath) as! MainCell
+        cell.selectionStyle = .none
         guard cell.currency?.currency == "UAH" else {return}
         cell.currencyTextField.becomeFirstResponder()
         cell.currencyTextField.delegate = self
@@ -342,9 +364,8 @@ extension StartViewController: UITableViewDataSource {
         
         guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyTableView.mainCellID, for: indexPath) as? MainCell else { return UITableViewCell() }
         
-        let currenc = currencysArray[indexPath.row]
-        cell.currency = currenc
-        cell.setLabel(currency: currenc, sell: saleCourse,nbu: nbuCourse, valueFromTF: valueTF)
+        cell.currency = currencysArray[indexPath.row]
+        cell.setLabel(sell: saleCourse,nbu: nbuCourse, valueFromTF: valueTF)
         return cell
     }
 }
