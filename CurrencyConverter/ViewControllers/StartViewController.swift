@@ -15,6 +15,7 @@ class StartViewController: UIViewController {
     private let coreData = CoreDataManager.instance
     private var valueTF: Double = 1
     private var currensItemToReSave: Currency?
+   
     private var currencysArray:[Currency] = [] {
         didSet{
             DispatchQueue.main.async {
