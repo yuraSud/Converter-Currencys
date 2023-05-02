@@ -17,7 +17,7 @@ class CurrencyTableView: UITableView {
     private func setupTable(){
         translatesAutoresizingMaskIntoConstraints = false
         register(MainCell.self, forCellReuseIdentifier: CurrencyTableView.mainCellID)
-        rowHeight = 70
+        rowHeight = 65
         separatorStyle = .none
     }
 }

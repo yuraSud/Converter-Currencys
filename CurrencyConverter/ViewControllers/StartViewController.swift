@@ -3,6 +3,7 @@ import CoreData
 
 class StartViewController: UIViewController {
     
+    private let numberRowsInMainTable = 6
     private var currencysFromInternet: [Currency]?
     private var arrayCurrencysFromCoreData = [String]()
     private let currencyView = CurrencyView()
@@ -13,11 +14,11 @@ class StartViewController: UIViewController {
     private let nationalBankExchangeRateButton = UIButton(type: .system)
     private let coreData = CoreDataManager.instance
     private var valueTF: Double = 1
-    
-    private var currencysArray = [Currency]() {
+    private var currensItemToReSave: Currency?
+    private var currencysArray:[Currency] = [] {
         didSet{
             DispatchQueue.main.async {
-                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == 5 ? true : false
+                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == self.numberRowsInMainTable ? true : false
             }
             reloadTable()
         }
@@ -39,7 +40,7 @@ class StartViewController: UIViewController {
     }
     
     
-//MARK: - Life cycle App:
+    //MARK: - Life cycle App:
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -56,7 +57,7 @@ class StartViewController: UIViewController {
         let listCurrencyVC = CurrencyListViewController()
         let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
         listCurrencyVC.completionChooseCurrency = { item in
-            if self.currencysArray.count < 5 {
+            if self.currencysArray.count < self.numberRowsInMainTable {
                 self.currencysArray.append(item)
                 self.coreData.newCurrencyCore(item)
             }
@@ -67,7 +68,7 @@ class StartViewController: UIViewController {
     
     @objc private func segmentAction(sender: UISegmentedControl) {
         if sender.selectedSegmentIndex == 0 {
-           saleCourse = true
+            saleCourse = true
         } else if sender.selectedSegmentIndex == 1 {
             saleCourse = false
         }
@@ -109,7 +110,7 @@ class StartViewController: UIViewController {
             self.shareScreenShotImage()
         }
         let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-       
+        
         alert.addAction(shareAction)
         alert.addAction(textAction)
         alert.addAction(imageAction)
@@ -198,54 +199,157 @@ class StartViewController: UIViewController {
     
     private func fetchDataSourceForTableFromInternet(_ date: Date) {
         FetchWeatherManager().fetchCurrency(for: date) { data, error  in
+            guard let data = data else {
+                print("!!! данные с интернета не получены")
+                DispatchQueue.main.async {
+                    self.alertNoInternet()
+                }
+                return
+            }
+            print("данные с интернета получены")
             self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
-            self.transformDataToCurrencyModel(data)
-            self.addStoreCurrencystoArrayTable(self.arrayCurrencysFromCoreData)
+            self.transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(data)
+            self.addStoreCurrencystoCurrencyArrayForTable(self.arrayCurrencysFromCoreData)
             self.dateFetchToLabel = date
         }
     }
     
+    private func alertNoInternet(){
+        let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
+        let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
+            self.lastUpdatedLabel.text = "Not internet\nConnection"
+            self.currencysArray = []
+            //self.reloadTable()
+        }
+        alert.addAction(actionOk)
+        present(alert, animated: true)
+    }
+    
     private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
         //Проверка на то что в хранилище есть данные
-       
+        
         let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
         arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
         
         print(arrayCurrencysFromCoreData, "Array bykv")
-       
+        
         guard let jsonData = jsonCurrencys?.jsonData else {
             print("дата не получил с коре")
-        //Если отсутствуют то берем данные с интернета
+            //Если отсутствуют то берем данные с интернета
             fetchDataSourceForTableFromInternet(dateToFetch)
             return}
         
         // Берем данные с кореДата и трансформируем их
         dateFetchToLabel = jsonCurrencys?.dateFetch
-        transformDataToCurrencyModel(jsonData)
-        addStoreCurrencystoArrayTable(arrayCurrencysFromCoreData)
+        transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(jsonData)
+        addStoreCurrencystoCurrencyArrayForTable(arrayCurrencysFromCoreData)
     }
     
-    private func transformDataToCurrencyModel(_ jsonData: Data?) {
+    private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {
         FetchWeatherManager().parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
-            print(model?.currencys[8].purchaseRate ?? "jjj", "euro")
         }
     }
     
-    private func addStoreCurrencystoArrayTable(_ arrayCurrencysFromCoreData:[String]){
+    private func addStoreCurrencystoCurrencyArrayForTable(_ arrayCurrencysFromCoreData:[String]){
         
         guard let fullArrayCurrency = currencysFromInternet else {return}
-        currencysArray.removeAll()
+        var mokcurrencysArray = [Currency]()
         
         arrayCurrencysFromCoreData.forEach{ item in
             for currency in fullArrayCurrency {
                 if currency.currency == item {
-                    currencysArray.append(currency)
+                    mokcurrencysArray.append(currency)
                 }
             }
         }
+        currencysArray = mokcurrencysArray
+        print(currencysArray.count, "currencyArray Count")
+    }
+}
+    
+//MARK: - UITableViewDelegate
+
+extension StartViewController: UITableViewDelegate {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        
+        let cell = tableView.cellForRow(at: indexPath) as! MainCell
+        cell.selectionStyle = .none
+        tableView.deselectRow(at: indexPath, animated: false)
+       
+        currensItemToReSave = cell.currency
+        
+        cell.currencyTextField.becomeFirstResponder()
+        cell.currencyTextField.delegate = self
     }
     
+    func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
+        return indexPath.row != 0 ? .delete : .none
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+       
+        guard let cellCurrency = (tableView.cellForRow(at: indexPath) as! MainCell).currency else {return}
+        
+        if editingStyle == .delete && indexPath.row != 0 {
+            print("delete row")
+            currencysArray.remove(at: indexPath.row)
+            coreData.deleteCurrencyCore(currencyToDelete: cellCurrency)
+        }
+    }
+}
+
+//MARK: - UITableViewDataSource
+
+extension StartViewController: UITableViewDataSource {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        currencysArray.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        
+        guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyTableView.mainCellID, for: indexPath) as? MainCell else { return UITableViewCell() }
+        cell.currencyTextField.tag = indexPath.row
+        cell.currency = currencysArray[indexPath.row]
+        cell.setLabel(sell: saleCourse,nbu: nbuCourse, valueFromTF: valueTF)
+        return cell
+    }
+}
+
+//MARK: - TextFieldDelegate
+extension StartViewController: UITextFieldDelegate {
+
+    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
+        guard let value = textField.text,
+              let valueTFDouble = Double(value),
+              var currensValue = currensItemToReSave
+        else {return true}
+       
+        //Обнуляем значение textFieldDoubleValue во всех валютах в массиве currencysArray
+        currencysArray.indices.forEach { item in
+            currencysArray[item].textFieldDoubleValue = nil
+        }
+        
+        //Установка значения из текст филда и замена валюты в массиве currencysArray
+        currensValue.textFieldDoubleValue = valueTFDouble
+        
+        if let i = currencysArray.firstIndex(where: { $0.currency == currensValue.currency}) {
+            currencysArray[i] = currensValue
+        }
+        valueTF = textField.tag == 0 ? valueTFDouble : valueTFDouble * (currensValue.saleRateNB ?? 0)
+        
+        reloadTable()
+        return true
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        view.endEditing(true)
+    }
+}
+
+
+// MARK: - Share function
+extension StartViewController {
      private func shareScreenShotAndText(){
         //1: Вам нужно определить контекст. например:
         UIGraphicsBeginImageContextWithOptions(currencyView.frame.size, true, 1.0 )
@@ -294,8 +398,9 @@ class StartViewController: UIViewController {
         self.present(activityViewController, animated: true, completion: nil)
     }
     
-    func createTextToShare(_ array:[Currency]) -> String {
+    func createTextToShare(_ array:[Currency]?) -> String {
         var resultString = ""
+        guard let array = array else {return ""}
         for item in array {
             if item.currency != "UAH" {
                 let str = "1 \(item.currency) = \(String(format: "%.3f", item.saleRateNB ?? 0)) UAH\n"
@@ -304,64 +409,6 @@ class StartViewController: UIViewController {
         }
         resultString.append(lastUpdatedLabel.text ?? "")
         return resultString
-    }
-}
-    
-//MARK: - UITableViewDelegate
-
-extension StartViewController: UITableViewDelegate {
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: false)
-        //guard indexPath.row == 0 else {return}
-        let cell = tableView.cellForRow(at: indexPath) as! MainCell
-        guard cell.currency?.currency == "UAH" else {return}
-        cell.currencyTextField.becomeFirstResponder()
-        cell.currencyTextField.delegate = self
-    }
-    
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
-       
-        guard let cellCurrency = (tableView.cellForRow(at: indexPath) as! MainCell).currency else {return}
-        
-        if editingStyle == .delete && indexPath.row != 0 {
-            print("delete row")
-            currencysArray.remove(at: indexPath.row)
-            coreData.deleteCurrencyCore(currencyToDelete: cellCurrency)
-        }
-    }
-}
-
-//MARK: - UITableViewDataSource
-
-extension StartViewController: UITableViewDataSource {
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        currencysArray.count
-    }
-    
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        guard let cell = tableView.dequeueReusableCell(withIdentifier: CurrencyTableView.mainCellID, for: indexPath) as? MainCell else { return UITableViewCell() }
-        
-        let currenc = currencysArray[indexPath.row]
-        cell.currency = currenc
-        cell.setLabel(currency: currenc, sell: saleCourse,nbu: nbuCourse, valueFromTF: valueTF)
-        return cell
-    }
-}
-
-//MARK: - TextFieldDelegate
-extension StartViewController: UITextFieldDelegate {
-
-    func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
-        guard let value = textField.text,
-              let valueTFDouble = Double(value)
-        else {return true}
-        valueTF = valueTFDouble
-        reloadTable()
-        return true
-    }
-    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        view.endEditing(true)
     }
 }
 
