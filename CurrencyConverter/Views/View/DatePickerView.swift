@@ -4,6 +4,7 @@ import UIKit
 class DatePickerView: UIView {
 
     let view = UIView()
+    let titleLabel = UILabel()
     let datePicker = UIDatePicker()
     let okButton = UIButton(type: .system)
     let cancelButton = UIButton(type: .system)
@@ -12,6 +13,7 @@ class DatePickerView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         configureView()
+        setBlurEffect()
         setUpView()
         setConstraints()
     }
@@ -20,11 +22,24 @@ class DatePickerView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
     
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+    }
+    
     private func setUpView() {
         addSubview(view)
+        view.addSubview(titleLabel)
         view.addSubview(datePicker)
         view.addSubview(okButton)
         view.addSubview(cancelButton)
+    }
+    
+    fileprivate func configureTitleLabel() {
+        titleLabel.text = "Select date to search for the National Bank exchange rate"
+        titleLabel.numberOfLines = 0
+        titleLabel.textAlignment = .center
+        titleLabel.textColor = .link
     }
     
     func configureView(){
@@ -32,6 +47,8 @@ class DatePickerView: UIView {
         okButton.translatesAutoresizingMaskIntoConstraints = false
         cancelButton.translatesAutoresizingMaskIntoConstraints = false
         datePicker.translatesAutoresizingMaskIntoConstraints = false
+        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        configureTitleLabel()
         configureDatePicker()
         configureButtons()
         setSettingsShadowView()
@@ -40,12 +57,22 @@ class DatePickerView: UIView {
     func configureButtons(){
         okButton.setTitle("OK", for: .normal)
         cancelButton.setTitle("Cancel", for: .normal)
+        cancelButton.setTitleColor(.red, for: .normal)
         let buttons = [okButton,cancelButton]
         buttons.forEach { button in
             button.layer.borderWidth = 1
             button.layer.cornerRadius = 15
             button.layer.borderColor = UIColor.systemBlue.cgColor
         }
+    }
+    
+    func setBlurEffect(){
+        let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.systemUltraThinMaterialLight )
+        let blurEffectView = UIVisualEffectView(effect: blurEffect)
+        blurEffectView.alpha = 0.95
+        blurEffectView.frame = self.bounds
+        blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        addSubview(blurEffectView)
     }
     
     private func  setSettingsShadowView() {
@@ -69,11 +96,11 @@ class DatePickerView: UIView {
         
     }
     
-    func formateDate() -> String{
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "dd.MM.yyyy"
-        return dateFormatter.string(from: datePicker.date)
-    }
+//    func formateDate() -> String{
+//        let dateFormatter = DateFormatter()
+//        dateFormatter.dateFormat = "dd.MM.yyyy"
+//        return dateFormatter.string(from: datePicker.date)
+//    }
     
     func configureMinimumDate(){
         var dateComponents = DateComponents()
@@ -89,7 +116,7 @@ class DatePickerView: UIView {
             view.centerXAnchor.constraint(equalTo: centerXAnchor),
             view.centerYAnchor.constraint(equalTo: centerYAnchor),
             view.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.8),
-            view.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.4),
+            //view.heightAnchor.constraint(equalTo: self.heightAnchor, multiplier: 0.4),
             
             cancelButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -15),
             cancelButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
@@ -101,10 +128,14 @@ class DatePickerView: UIView {
             okButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
             okButton.heightAnchor.constraint(equalToConstant: 35),
             
-            datePicker.topAnchor.constraint(equalTo: view.topAnchor, constant: 15),
+            datePicker.topAnchor.constraint(equalTo: titleLabel.bottomAnchor, constant: 5),
             datePicker.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
             datePicker.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            datePicker.bottomAnchor.constraint(lessThanOrEqualTo: okButton.topAnchor, constant: -16)
+            datePicker.bottomAnchor.constraint(lessThanOrEqualTo: okButton.topAnchor, constant: -16),
+            
+            titleLabel.topAnchor.constraint(equalTo: view.topAnchor, constant: 15),
+            titleLabel.leadingAnchor.constraint(equalTo: datePicker.leadingAnchor),
+            titleLabel.trailingAnchor.constraint(equalTo: datePicker.trailingAnchor)
         ])
     }
 }

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		4391BA342A028F1400C3B76C /* ShareManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4391BA332A028F1400C3B76C /* ShareManager.swift */; };
 		43B6AFF929FEE151002C8246 /* UIView+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B6AFF829FEE151002C8246 /* UIView+Extension.swift */; };
 		43B6AFFB29FEEEB5002C8246 /* TextField+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43B6AFFA29FEEEB5002C8246 /* TextField+Extension.swift */; };
 		43C7263C29FAF3410068C9A8 /* TransformCurrency.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43C7263829FAF3410068C9A8 /* TransformCurrency.swift */; };
@@ -55,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		4391BA332A028F1400C3B76C /* ShareManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareManager.swift; sourceTree = "<group>"; };
 		43B6AFF829FEE151002C8246 /* UIView+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIView+Extension.swift"; sourceTree = "<group>"; };
 		43B6AFFA29FEEEB5002C8246 /* TextField+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TextField+Extension.swift"; sourceTree = "<group>"; };
 		43C7263829FAF3410068C9A8 /* TransformCurrency.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransformCurrency.swift; sourceTree = "<group>"; };
@@ -125,12 +127,13 @@
 			path = Model;
 			sourceTree = "<group>";
 		};
-		43C7264029FAF36A0068C9A8 /* NetworkManagers */ = {
+		43C7264029FAF36A0068C9A8 /* Managers */ = {
 			isa = PBXGroup;
 			children = (
 				43C7264129FAF36A0068C9A8 /* NetworkManager.swift */,
+				4391BA332A028F1400C3B76C /* ShareManager.swift */,
 			);
-			path = NetworkManagers;
+			path = Managers;
 			sourceTree = "<group>";
 		};
 		43C7264A29FAF3D60068C9A8 /* Cells */ = {
@@ -191,7 +194,7 @@
 				5886127929F67EB000B0C35B /* CoreData */,
 				5886127729F67A8700B0C35B /* ViewControllers */,
 				43C7263729FAF3410068C9A8 /* Model */,
-				43C7264029FAF36A0068C9A8 /* NetworkManagers */,
+				43C7264029FAF36A0068C9A8 /* Managers */,
 				5886127F29F7F86300B0C35B /* Views */,
 				5886127829F67ACB00B0C35B /* Resources */,
 			);
@@ -397,6 +400,7 @@
 				43C7264729FAF3B30068C9A8 /* CurrencyCell.swift in Sources */,
 				5886124829F6700700B0C35B /* StartViewController.swift in Sources */,
 				43C7263C29FAF3410068C9A8 /* TransformCurrency.swift in Sources */,
+				4391BA342A028F1400C3B76C /* ShareManager.swift in Sources */,
 				43EA73302A019D9F00F6163B /* UILabel+Extension.swift in Sources */,
 				43C7264229FAF36B0068C9A8 /* NetworkManager.swift in Sources */,
 				43C7264E29FAFBF40068C9A8 /* MainCell.swift in Sources */,
