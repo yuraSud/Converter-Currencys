@@ -24,10 +24,6 @@ class MainCell: UITableViewCell {
         fatalError("init(coder:) has not been implemented")
     }
     
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        
-    }
     
     override func layoutSubviews() {
         super.layoutSubviews()
@@ -51,9 +47,8 @@ class MainCell: UITableViewCell {
         currencyTextField.addDoneButtonToKeyboard(myAction: #selector(currencyTextField.resignFirstResponder))
     }
     
-    func setLabel(sell: Bool, nbu: Bool = false, valueFromTF: Double){
+    func setLabel(sell: Bool, nbu: Bool, valueFromTF: Double){
         guard let currency = currency else {return}
-        //currencyLabel.text = currency.currency + "  👉"
         currencyLabel.setLabelRightIcon(text: currency.currency, rightIcon: UIImage(systemName: "chevron.right"))
         currencyTextField.notLayerTF()
         

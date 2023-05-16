@@ -17,13 +17,8 @@ class CoreDataManager {
         } catch {
             print("not fetch users")
         }
-        print(jsonCurrencys.count, "jsonCurrencys.count")
-        print(date, "новая дата должна быть")
         for item in jsonCurrencys {
-            print(item.dateFetch ?? "no date", "дата JsonCurrencys")
-            print(date.differenceCalculation(date: item.dateFetch!), "result")
             if date.differenceCalculation(date: item.dateFetch!) {
-               print("берем из базы дата данные")
                 return item
             }
         }
@@ -42,9 +37,6 @@ class CoreDataManager {
             } catch {
                 print("not fetch users")
             }
-            
-            print(currencyCore.count, "currencyCore.count")
-            
             var array = [String]()
             currencyCore.forEach { item in
                 array.append(item.currencyName ?? "")
@@ -52,7 +44,6 @@ class CoreDataManager {
             }
             return array
         }
-              
    
     func newCurrencyCore(_ currency: Currency) {
         
@@ -76,13 +67,11 @@ class CoreDataManager {
     func newjsonCurrencys(jsonCurrencyData: Data?, date: Date) {
         
         let newjsonCurrencys = JsonCurrencys(context: context)
-        
+        guard let dataJson = jsonCurrencyData else {return}
         newjsonCurrencys.dateFetch = date
-        newjsonCurrencys.jsonData = jsonCurrencyData
+        newjsonCurrencys.jsonData = dataJson
         print("create jsonCurrency")
         saveContext()
-       
-        //return newjsonCurrencys
     }
     
     func deleteCurrencyCore(currencyToDelete: Currency){

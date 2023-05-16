@@ -28,6 +28,5 @@ extension Date {
         let diffComponents = Calendar.current.dateComponents([.hour], from: date, to: self)
         let hours = diffComponents.hour ?? 0
         return abs(hours) < 20 ? true : false
-        
     }
 }

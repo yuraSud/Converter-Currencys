@@ -1,18 +1,16 @@
 import Foundation
 import CoreData
 
-struct FetchWeatherManager {
+struct NetworkManager {
     
     lazy var coreData = CoreDataManager.instance
     
-    func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?)->()){
+    func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?) ->(Void) ) {
         
         let session = URLSession.shared
         guard let url = URL(string: "https://api.privatbank.ua/p24api/exchange_rates?json&date=\(date.formateDateToJsonRequest())") else {
             completionhandler(nil,NetworkRequestError.notValidURL)
             return}
-        
-        print(url)
         
         let task = session.dataTask(with: url) { (data, response, error) in
             

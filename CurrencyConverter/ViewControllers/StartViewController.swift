@@ -7,7 +7,7 @@ class StartViewController: UIViewController {
     private var currencysFromInternet: [Currency]?
     private var arrayCurrencysFromCoreData = [String]()
     let currencyView = CurrencyView()
-    private var datepicker: DatePickerView!
+    private var datepickerView: DatePickerView!
     private let backgroundImageView = UIImageView()
     private let appNameLabel = UILabel()
     let lastUpdatedLabel = UILabel()
@@ -19,7 +19,7 @@ class StartViewController: UIViewController {
     var currencysArray:[Currency] = [] {
         didSet{
             DispatchQueue.main.async {
-                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count == self.numberRowsInMainTable ? true : false
+                self.currencyView.addCurrencyButton.isHidden = self.currencysArray.count >= self.numberRowsInMainTable ? true : false
             }
             reloadTable()
         }
@@ -39,7 +39,7 @@ class StartViewController: UIViewController {
             updateDateLabel(dateUpdate: dateFetchToLabel)
         }
     }
-    
+  
     
     //MARK: - Life cycle App:
     
@@ -57,7 +57,8 @@ class StartViewController: UIViewController {
     @objc private func addCurrency(){
         let listCurrencyVC = CurrencyListViewController()
         let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
-        listCurrencyVC.completionChooseCurrency = { item in
+        listCurrencyVC.completionChooseCurrency = { [weak self] item in
+            guard let self = self else {return}
             if self.currencysArray.count < self.numberRowsInMainTable {
                 self.currencysArray.append(item)
                 self.coreData.newCurrencyCore(item)
@@ -74,15 +75,13 @@ class StartViewController: UIViewController {
             saleCourse = false
         }
     }
-    func setBlurEffect(){
-        
-    }
+    
     @objc private func currencyNbuFromDate(){
         if !nbuCourse {
-            datepicker = DatePickerView(frame: self.view.frame)
-            datepicker.cancelButton.addTarget(self, action: #selector(closeDatePicker), for: .touchUpInside)
-            datepicker.okButton.addTarget(self, action: #selector(pushDateFromPicker), for: .touchUpInside)
-            view.addSubview(datepicker)
+            datepickerView = DatePickerView(frame: self.view.bounds)
+            datepickerView.cancelButton.addTarget(self, action: #selector(closeDatePickerView), for: .touchUpInside)
+            datepickerView.okButton.addTarget(self, action: #selector(pushDateFromPicker), for: .touchUpInside)
+            view.addSubview(datepickerView)
         } else {
             nbuCourse = false
             nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
@@ -90,15 +89,15 @@ class StartViewController: UIViewController {
     }
     
     @objc private func pushDateFromPicker(){
-        print(datepicker.datePicker.date.formateDateToJsonRequest(), "берем новую дату")
+        print(datepickerView.datePicker.date.formateDateToJsonRequest(), "берем новую дату")
         nationalBankExchangeRateButton.setTitle("Return to course PB", for: .normal)
         nbuCourse = true
-        fetchDataSourceForTableFromCoreData(datepicker.datePicker.date)
-        closeDatePicker()
+        fetchDataSourceForTableFromCoreData(datepickerView.datePicker.date)
+        closeDatePickerView()
     }
     
-    @objc private func closeDatePicker(){
-        datepicker.removeFromSuperview()
+    @objc private func closeDatePickerView(){
+        datepickerView.removeFromSuperview()
     }
     
     @objc private func choiseShared(){
@@ -153,10 +152,10 @@ class StartViewController: UIViewController {
         currencyView.shareButton.addTarget(self, action: #selector(choiseShared), for: .touchUpInside)
     }
     
-    func reloadTable(){
-        DispatchQueue.main.async {
-            self.currencyView.currencyTable.reloadData()
-        }
+  func reloadTable(){
+      DispatchQueue.main.async {
+          self.currencyView.currencyTable.reloadData()
+      }
     }
     
     private func configBackgroundImageView() {
@@ -180,6 +179,7 @@ class StartViewController: UIViewController {
         lastUpdatedLabel.textAlignment = .left
         lastUpdatedLabel.font = .systemFont(ofSize: 14)
     }
+    
     private func updateDateLabel(dateUpdate: Date){
         DispatchQueue.main.async {
             self.lastUpdatedLabel.text = "Last Updated\n\(dateUpdate.formateDateToUpdateLabel())"
@@ -201,7 +201,7 @@ class StartViewController: UIViewController {
     }
     
     private func fetchDataSourceForTableFromInternet(_ date: Date) {
-        FetchWeatherManager().fetchCurrency(for: date) { data, error  in
+        NetworkManager().fetchCurrency(for: date) { (data, error)  in
             guard let data = data else {
                 print("!!! данные с интернета не получены")
                 DispatchQueue.main.async {
@@ -231,12 +231,15 @@ class StartViewController: UIViewController {
         //Проверка на то что в хранилище есть данные
         
         let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
+        
+        // Записываем массив имен валют из коре Даты которые у нас в основной таблице
         arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
         
         print(arrayCurrencysFromCoreData, "Array bykv")
         
         guard let jsonData = jsonCurrencys?.jsonData else {
             print("дата не получил с коре")
+           
             //Если отсутствуют то берем данные с интернета
             fetchDataSourceForTableFromInternet(dateToFetch)
             return}
@@ -248,7 +251,7 @@ class StartViewController: UIViewController {
     }
     
     private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {
-        FetchWeatherManager().parseCurrency(jsonData) { model in
+        NetworkManager().parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
         }
     }
@@ -266,7 +269,6 @@ class StartViewController: UIViewController {
             }
         }
         currencysArray = mokcurrencysArray
-        print(currencysArray.count, "currencyArray Count")
     }
 }
     
@@ -324,7 +326,7 @@ extension StartViewController: UITextFieldDelegate {
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {
         guard let value = textField.text,
               let valueTFDouble = Double(value),
-              var currensValue = currensItemToReSave
+              let currensValue = currensItemToReSave
         else {return true}
        
         //Обнуляем значение textFieldDoubleValue во всех валютах в массиве currencysArray
@@ -332,11 +334,8 @@ extension StartViewController: UITextFieldDelegate {
             currencysArray[item].textFieldDoubleValue = nil
         }
         
-        //Установка значения из текст филда и замена валюты в массиве currencysArray
-        currensValue.textFieldDoubleValue = valueTFDouble
-        
         if let i = currencysArray.firstIndex(where: { $0.currency == currensValue.currency}) {
-            currencysArray[i] = currensValue
+            currencysArray[i].textFieldDoubleValue = valueTFDouble
         }
         valueTF = textField.tag == 0 ? valueTFDouble : valueTFDouble * (currensValue.saleRateNB ?? 0)
         
