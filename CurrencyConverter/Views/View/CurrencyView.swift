@@ -63,7 +63,6 @@ class CurrencyView: UIView {
         addCurrencyButton.setImage(UIImage(named: "blue_plus"), for: .normal)
         addCurrencyButton.setTitleColor(UIColor.systemBlue, for: .normal)
         addCurrencyButton.titleLabel?.font = .systemFont(ofSize: 14)
-       
 //        addCurrencyButton.addTarget(self, action: #selector(), for: .touchUpInside)
     }
     

@@ -29,11 +29,8 @@ class StartViewController: UIViewController {
             reloadTable()
         }
     }
-    private var nbuCourse = false {
-        didSet{
-            reloadTable()
-        }
-    }
+    private var nbuCourse = false
+       
     private var dateFetchToLabel: Date! {
         didSet{
             updateDateLabel(dateUpdate: dateFetchToLabel)
@@ -85,6 +82,7 @@ class StartViewController: UIViewController {
         } else {
             nbuCourse = false
             nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
+            fetchDataSourceForTableFromCoreData(Date())
         }
     }
     
@@ -282,9 +280,10 @@ extension StartViewController: UITableViewDelegate {
         tableView.deselectRow(at: indexPath, animated: false)
        
         currensItemToReSave = cell.currency
-        
+        cell.currencyTextField.blueLayerTF()
         cell.currencyTextField.becomeFirstResponder()
         cell.currencyTextField.delegate = self
+        cell.contentView.isUserInteractionEnabled = false
     }
     
     func tableView(_ tableView: UITableView, editingStyleForRowAt indexPath: IndexPath) -> UITableViewCell.EditingStyle {
@@ -338,13 +337,21 @@ extension StartViewController: UITextFieldDelegate {
             currencysArray[i].textFieldDoubleValue = valueTFDouble
         }
         valueTF = textField.tag == 0 ? valueTFDouble : valueTFDouble * (currensValue.saleRateNB ?? 0)
-        
         reloadTable()
         return true
     }
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         view.endEditing(true)
+    }
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        return updatedText.noDigits()
     }
 }
 

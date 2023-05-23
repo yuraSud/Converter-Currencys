@@ -44,19 +44,22 @@ class MainCell: UITableViewCell {
         currencyTextField.backgroundColor = .secondarySystemBackground
         currencyTextField.keyboardType = .numberPad
         currencyTextField.returnKeyType = .done
+        currencyTextField.clearButtonMode = .whileEditing
         currencyTextField.addDoneButtonToKeyboard(myAction: #selector(currencyTextField.resignFirstResponder))
     }
     
     func setLabel(sell: Bool, nbu: Bool, valueFromTF: Double){
         guard let currency = currency else {return}
         currencyLabel.setLabelRightIcon(text: currency.currency, rightIcon: UIImage(systemName: "chevron.right"))
+        contentView.isUserInteractionEnabled = true
         currencyTextField.notLayerTF()
-        
         if let value = currency.textFieldDoubleValue {
             currencyTextField.text = "\(Double(value))"
-            currencyTextField.blueLayerTF()
+            //currencyTextField.blueLayerTF()
             return
-        }
+        } //else {
+            //
+        //}
        
         guard currency.currency != "UAH" else {
             currencyTextField.text = String(format: "%.2f", valueFromTF)
