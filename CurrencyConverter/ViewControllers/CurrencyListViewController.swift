@@ -8,13 +8,13 @@ class CurrencyListViewController: UIViewController {
     
     var currencys: [Currency]?
     var completionChooseCurrency: ((Currency)->())?
-    
+    private var currencyTableView = UITableView()
+    private var currencyTransform = TransformCurrency()
+    private let searchController = UISearchController()
     private var headerTitlesArray: [String]?
     private var dataToSections: [[Currency]] = []
     private var filteredDataToSections: [Currency] = []
-    private var currencyTableView = UITableView()
-    private var transformCur = TransformCurrency()
-    private let searchController = UISearchController()
+   
     
 // MARK: - Life cycle ViewController
     
@@ -30,17 +30,16 @@ class CurrencyListViewController: UIViewController {
     
  //MARK: - Function
     
-    @objc func back(){
+    @objc func back() {
         dismiss(animated: true)
     }
     
-    private func setupCurrencyTableView(){
+    private func setupCurrencyTableView() {
         currencyTableView = UITableView(frame: view.bounds, style: .insetGrouped)
         currencyTableView.delegate = self
         currencyTableView.dataSource = self
         view.addSubview(currencyTableView)
         currencyTableView.register(CurrencyCell.self, forCellReuseIdentifier: CurrencyListViewController.cellID)
-        
         currencyTableView.backgroundColor = .clear
         currencyTableView.layer.shadowColor = UIColor.black.cgColor
         currencyTableView.layer.shadowOpacity = 0.3
@@ -51,9 +50,9 @@ class CurrencyListViewController: UIViewController {
     private func fetchDataSourceForTable(model: [Currency]?) {
             
         guard let models = model else {return}
-        self.transformCur.createDataSourceHeaderAndSections(model: models)
-            self.headerTitlesArray = self.transformCur.headerArray
-            self.dataToSections = self.transformCur.sections
+        self.currencyTransform.createDataSourceHeaderAndSections(model: models)
+            self.headerTitlesArray = self.currencyTransform.headerArray
+            self.dataToSections = self.currencyTransform.sections
             DispatchQueue.main.async {
                 self.currencyTableView.reloadData()
             }
@@ -68,7 +67,7 @@ class CurrencyListViewController: UIViewController {
         navigationItem.leftBarButtonItem = UIBarButtonItem(customView: backButton)
     }
     
-    private func configureSearchBar(){
+    private func configureSearchBar() {
         navigationItem.searchController = searchController
         searchController.obscuresBackgroundDuringPresentation = false
         searchController.searchBar.delegate = self

@@ -10,7 +10,6 @@ extension StartViewController {
        currencyView.drawHierarchy(in: CGRect(x: 0, y: 0, width: currencyView.bounds.width, height: self.currencyView.bounds.height), afterScreenUpdates: false)
        //3: Использовать только что нарисованное изображение
        guard let newImage = UIGraphicsGetImageFromCurrentImageContext() else {return}
-       UIGraphicsEndImageContext()
        
        //альтернативное получение скрина через расширение UIView
 //         let newImage = currencyView.takeScreenShot()
@@ -43,7 +42,6 @@ extension StartViewController {
         guard let context = UIGraphicsGetCurrentContext() else { return }
         view.layer.render(in: context)
         guard let image = UIGraphicsGetImageFromCurrentImageContext() else { return }
-        UIGraphicsEndImageContext()
         
         let obectsToShare = [ image ]
         let activityViewController = UIActivityViewController(activityItems: obectsToShare, applicationActivities: nil)
@@ -52,8 +50,8 @@ extension StartViewController {
     }
     
     private func createTextToShare(_ array:[Currency]?) -> String {
-        var resultString = ""
         guard let array = array else {return ""}
+        var resultString = ""
         for item in array {
             if item.currency != "UAH" {
                 let str = "1 \(item.currency) = \(String(format: "%.3f", item.saleRateNB ?? 0)) UAH\n"
