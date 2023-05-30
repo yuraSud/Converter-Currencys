@@ -151,9 +151,7 @@ class StartViewController: UIViewController {
     private func fetchDataSourceForTableFromInternet(_ date: Date) {
         networkManager.fetchCurrency(for: date) { (data, error)  in
             guard let data = data else {
-                DispatchQueue.main.async {
-                    self.alertNoInternet()
-                }
+                self.alertNoInternet()
                 return
             }
             self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
@@ -164,13 +162,15 @@ class StartViewController: UIViewController {
     }
     
     private func alertNoInternet(){
-        let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
-        let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
-            self.lastUpdatedLabel.text = "Not internet\nConnection"
-            self.currencysArray = []
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
+            let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
+                self.lastUpdatedLabel.text = "Not internet\nConnection"
+                self.currencysArray = []
+            }
+            alert.addAction(actionOk)
+            self.present(alert, animated: true)
         }
-        alert.addAction(actionOk)
-        present(alert, animated: true)
     }
     
     private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {

@@ -1,30 +1,76 @@
 
 import XCTest
+import CoreData
 @testable import CurrencyConverter
 
 final class CurrencyConverterTests: XCTestCase {
 
-    override func setUpWithError() throws {
-        // Put setup code here. This method is called before the invocation of each test method in the class.
+    var coreDataManager: CoreDataManager!
+    var coreDataTestStack: CoreDataTestStack!
+
+    override func setUp() {
+        super.setUp()
+        coreDataTestStack = CoreDataTestStack()
+        coreDataManager = CoreDataManager(coreDataTestStack.mainContext)
     }
 
-    override func tearDownWithError() throws {
-        // Put teardown code here. This method is called after the invocation of each test method in the class.
+    func testCreateCurrencyCoreFromString() {
+        coreDataManager.newCurrencyCoreFromString("Euro")
+        let currencyEuro = coreDataManager.getCurrencyFromCore()
+        
+        XCTAssertEqual("Euro", currencyEuro[0])
     }
-
-    func testExample() throws {
-        // This is an example of a functional test case.
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // Any test you write for XCTest can be annotated as throws and async.
-        // Mark your test throws to produce an unexpected failure when your test encounters an uncaught error.
-        // Mark your test async to allow awaiting for asynchronous code to complete. Check the results with assertions afterwards.
+        
+    func testDeleteCurrencyCore() {
+        coreDataManager.newCurrencyCoreFromString("Euro")
+        coreDataManager.newCurrencyCoreFromString("US Dollar")
+        coreDataManager.newCurrencyCoreFromString("Hryvnia")
+        
+        var currencyArrayInCore = coreDataManager.getCurrencyFromCore()
+        XCTAssertEqual(currencyArrayInCore.count, 3)
+        
+        let currencyEuro = Currency(baseCurrency: nil, currency: "Euro", saleRateNB: nil, purchaseRateNB: nil, saleRate: nil, purchaseRate: nil)
+        
+        coreDataManager.deleteCurrencyCore(currencyToDelete: currencyEuro)
+        currencyArrayInCore = coreDataManager.getCurrencyFromCore()
+        
+        XCTAssertEqual(currencyArrayInCore.count, 2)
+        XCTAssertTrue(currencyArrayInCore.contains(where: {$0 == "Hryvnia"}))
+        XCTAssertFalse(currencyArrayInCore.contains(where: {$0 == "Euro"}))
+        XCTAssertTrue(currencyArrayInCore.contains(where: {$0 == "US Dollar"}))
     }
-
-    func testPerformanceExample() throws {
-        // This is an example of a performance test case.
-        self.measure {
-            // Put the code you want to measure the time of here.
-        }
+    
+    func testCreateCurrencyCore() {
+        let currencyCZK = Currency(baseCurrency: nil, currency: "CZK", saleRateNB: nil, purchaseRateNB: nil, saleRate: nil, purchaseRate: nil)
+        coreDataManager.newCurrencyCore(currencyCZK)
+        
+        let currencyEuro = coreDataManager.getCurrencyFromCore()
+        
+        XCTAssertEqual("CZK", currencyEuro[0])
+    }
+    
+    func testCreateAndGetJsonCurrencies() {
+        let dataForTest = Data("Оля барашка".utf8)
+        //Create JsonCurrency
+        coreDataManager.newjsonCurrencys(jsonCurrencyData: dataForTest, date: Date())
+        
+        //Create Date
+        var dateComponents = DateComponents()
+        dateComponents.year = 2023
+        dateComponents.month = 4
+        dateComponents.day = 15
+        let dateMock = Calendar.current.date(from: dateComponents)!
+        
+        let jsonCurrencyNil = coreDataManager.getJsonCurrencysForDate(date: dateMock)
+        XCTAssertNil(jsonCurrencyNil)
+        
+        let jsonCurrency = coreDataManager.getJsonCurrencysForDate(date: Date())
+        XCTAssertNotNil(jsonCurrency)
+        XCTAssertNotNil(jsonCurrency?.jsonData)
+        
+        let stringFromData = String(decoding: (jsonCurrency?.jsonData)!, as: UTF8.self)
+        XCTAssertEqual(stringFromData, "Оля барашка")
+        XCTAssertNotEqual(stringFromData, "USD")
     }
 
 }

@@ -1,14 +1,40 @@
 import CoreData
 import UIKit
 
-class CoreDataManager {
+open class CoreDataManager {
    
     static let instance = CoreDataManager()
-    private init(){}
     
-    lazy var context = persistentContainer.viewContext
+    let persistentContainer: NSPersistentContainer
+    let context: NSManagedObjectContext
     
-       
+    private init() {
+        persistentContainer = {
+            let container = NSPersistentContainer(name: "CurrencyConverter")
+            container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+                if let error = error as NSError? {
+                    fatalError("Unresolved error \(error), \(error.userInfo)")
+                }
+            })
+            return container
+        }()
+        context = persistentContainer.viewContext
+    }
+    
+    public init(_ mainContext: NSManagedObjectContext) {
+        persistentContainer = NSPersistentContainer(name: "CurrencyConverter")
+        let description = persistentContainer.persistentStoreDescriptions.first
+        description?.type = NSSQLiteStoreType
+        
+        persistentContainer.loadPersistentStores { description, error in
+            guard error == nil else {
+                fatalError("was unable to load store \(error!)")
+            }
+        }
+        self.context = mainContext
+    }
+    
+    //Return JsonCurrencys from CoreData if date store difference current Date less 20 hours
     func getJsonCurrencysForDate(date: Date) -> JsonCurrencys? {
         var jsonCurrencys: [JsonCurrencys] = []
         let fetchRequest = NSFetchRequest<JsonCurrencys>(entityName: "JsonCurrencys")
@@ -25,6 +51,7 @@ class CoreDataManager {
         return nil
     }
     
+    //Return Name Currencys from CoreData which are displayed in the main table
     func getCurrencyFromCore() -> [String] {
             var currencyCore: [CurrencyCore] = []
             let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
@@ -40,40 +67,36 @@ class CoreDataManager {
             var array = [String]()
             currencyCore.forEach { item in
                 array.append(item.currencyName ?? "")
-                print(item.currencyName ?? "", "nameItemCurrency")
             }
             return array
         }
    
+    //Create CurrencyCore entity from Currency and save in CoreData
     func newCurrencyCore(_ currency: Currency) {
-        
         let newCurrencyCore = CurrencyCore(context: context)
-        
         newCurrencyCore.currencyName = currency.currency
         newCurrencyCore.idTime = Date()
-        print("Create currencyCore")
         saveContext()
     }
     
+    //Create CurrencyCore entity from String and save in CoreData
     func newCurrencyCoreFromString(_ currencyName: String) {
-        
         let newCurrencyCore = CurrencyCore(context: context)
         newCurrencyCore.currencyName = currencyName
         newCurrencyCore.idTime = Date()
-        print("Create currencyCoreForString")
         saveContext()
     }
     
+    //Create JsonCurrency entity from Data and save in CoreData
     func newjsonCurrencys(jsonCurrencyData: Data?, date: Date) {
-        
         let newjsonCurrencys = JsonCurrencys(context: context)
         guard let dataJson = jsonCurrencyData else {return}
         newjsonCurrencys.dateFetch = date
         newjsonCurrencys.jsonData = dataJson
-        print("create jsonCurrency")
         saveContext()
     }
     
+    //Delete CurrencyCore 
     func deleteCurrencyCore(currencyToDelete: Currency){
         var currencyCores: [CurrencyCore] = []
         let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
@@ -89,26 +112,10 @@ class CoreDataManager {
             }
         }
     }
-    
-    
-    // MARK: - Core Data stack
-
-    lazy var persistentContainer: NSPersistentContainer = {
-       
-        let container = NSPersistentContainer(name: "CurrencyConverter")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-            if let error = error as NSError? {
-               
-                fatalError("Unresolved error \(error), \(error.userInfo)")
-            }
-        })
-        return container
-    }()
 
     // MARK: - Core Data Saving support
 
     func saveContext () {
-        let context = persistentContainer.viewContext
         if context.hasChanges {
             do {
                 try context.save()
