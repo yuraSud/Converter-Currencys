@@ -3,7 +3,7 @@ import CoreData
 
 struct NetworkManager {
     
-    lazy var coreData = CoreDataManager.instance
+//    lazy var coreData = CoreDataManager.instance
     
     func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?) ->(Void) ) {
         
