@@ -9,7 +9,7 @@ import Foundation
 
 struct PreloadData {
    
-    public func preloadData(){
+    public func preloadData() {
         let preloadDataKey = "PreloadDataKey"
         let coreDataManager = CoreDataManager.instance
         let userDefaults = UserDefaults.standard
@@ -29,8 +29,6 @@ struct PreloadData {
                     print(error.localizedDescription)
                 }
             }
-        } else {
-            print("not create, already existing")
         }
     }
 }

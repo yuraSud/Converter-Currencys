@@ -5,7 +5,7 @@ struct TransformCurrency {
     var sections: [[Currency]] = [[]]
    private let popular = ["UAH","EUR","USD"]
     
-    mutating func createDataSourceHeaderAndSections(model: [Currency]){
+    mutating func createDataSourceHeaderAndSections(model: [Currency]) {
         var popularArrayCurrencys: [Currency] = []
         
         model.forEach{ value in

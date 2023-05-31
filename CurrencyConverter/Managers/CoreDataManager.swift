@@ -88,19 +88,17 @@ class CoreDataManager {
     }
     
     //Delete CurrencyCore
-    func deleteCurrencyCore(currencyToDelete: Currency){
-        var currencyCores: [CurrencyCore] = []
+    func deleteCurrencyCore(_ indexDelete: Int){
         let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
+        let sortDescriptorToIdTime = NSSortDescriptor(key: #keyPath(CurrencyCore.idTime), ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptorToIdTime]
+        
         do{
-            currencyCores = try context.fetch(fetchRequest)
+            let currencyCores = try context.fetch(fetchRequest)
+            context.delete(currencyCores[indexDelete])
+            saveContext()
         } catch {
             print("not fetch users")
-        }
-        for item in currencyCores {
-            if item.currencyName == currencyToDelete.currency {
-                context.delete(item)
-                saveContext()
-            }
         }
     }
 

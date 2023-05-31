@@ -50,7 +50,7 @@ final class CurrencyNetworkTest: XCTestCase {
             currencyData = data
             expectation.fulfill()
         }
-        wait(for: [expectation], timeout: 10)
+        wait(for: [expectation], timeout: 20)
         XCTAssertNotNil(currencyData)
         
         networkManager.parseCurrency(currencyData) { currencyModel in

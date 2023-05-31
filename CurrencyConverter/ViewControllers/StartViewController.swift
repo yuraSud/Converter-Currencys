@@ -17,6 +17,7 @@ class StartViewController: UIViewController {
     private var arrayCurrencysFromCoreData = [String]()
     private let coreData = CoreDataManager.instance
     private let networkManager = NetworkManager()
+    private var nbuCourse = false
     
     var currencysArray:[Currency] = [] {
         didSet{
@@ -32,8 +33,6 @@ class StartViewController: UIViewController {
             reloadTable()
         }
     }
-    
-    private var nbuCourse = false
        
     private var dateFetchToLabel: Date! {
         didSet{
@@ -54,7 +53,7 @@ class StartViewController: UIViewController {
     
     //MARK: - @objc functions:
     
-    @objc private func addCurrency(){
+    @objc private func addCurrency() {
         let listCurrencyVC = CurrencyListViewController()
         let navContrroler = UINavigationController(rootViewController: listCurrencyVC)
         listCurrencyVC.completionChooseCurrency = { [weak self] item in
@@ -72,7 +71,7 @@ class StartViewController: UIViewController {
         saleCourse = sender.selectedSegmentIndex == 0 ? true : false
     }
     
-    @objc private func currencyNbuFromDate(){
+    @objc private func currencyNbuFromDate() {
         if !nbuCourse {
             datepickerView = DatePickerView(frame: self.view.bounds)
             datepickerView.cancelButton.addTarget(self, action: #selector(closeDatePickerView), for: .touchUpInside)
@@ -85,19 +84,18 @@ class StartViewController: UIViewController {
         }
     }
     
-    @objc private func pushDateFromPicker(){
-        print(datepickerView.datePicker.date.formateDateToJsonRequest(), "берем новую дату")
+    @objc private func pushDateFromPicker() {
         nationalBankExchangeRateButton.setTitle("Return to course PB", for: .normal)
         nbuCourse = true
         fetchDataSourceForTableFromCoreData(datepickerView.datePicker.date)
         closeDatePickerView()
     }
     
-    @objc private func closeDatePickerView(){
+    @objc private func closeDatePickerView() {
         datepickerView.removeFromSuperview()
     }
     
-    @objc private func choiseShared(){
+    @objc private func choiseShared() {
         let alert = UIAlertController(title: "Choose what you want to share", message: nil, preferredStyle: .actionSheet)
         let shareAction = UIAlertAction(title: "Share ", style: .destructive){_ in
             self.shareScreenShotAndText()
@@ -118,7 +116,8 @@ class StartViewController: UIViewController {
     }
     
     //MARK: - Functions:
-    private func configureView(){
+    
+    private func configureView() {
         configBackgroundImageView()
         configAppNameLabel()
         configLastUpdatedLabel()
@@ -129,20 +128,20 @@ class StartViewController: UIViewController {
         setDelegateTable()
     }
     
-    private func addTargetButtons(){
+    private func addTargetButtons() {
         currencyView.addCurrencyButton.addTarget(self, action: #selector(addCurrency), for: .touchUpInside)
         currencyView.exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
         nationalBankExchangeRateButton.addTarget(self, action: #selector(currencyNbuFromDate), for: .touchUpInside)
         currencyView.shareButton.addTarget(self, action: #selector(choiseShared), for: .touchUpInside)
     }
     
-    private func reloadTable(){
+    private func reloadTable() {
       DispatchQueue.main.async {
           self.currencyView.currencyTable.reloadData()
       }
     }
     
-    private func updateDateLabel(dateUpdate: Date){
+    private func updateDateLabel(dateUpdate: Date) {
         DispatchQueue.main.async {
             self.lastUpdatedLabel.text = "Last Updated\n\(dateUpdate.formateDateToUpdateLabel())"
         }
@@ -161,7 +160,7 @@ class StartViewController: UIViewController {
         }
     }
     
-    private func alertNoInternet(){
+    private func alertNoInternet() {
         DispatchQueue.main.async {
             let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
             let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
@@ -173,13 +172,13 @@ class StartViewController: UIViewController {
         }
     }
     
-    private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {
+    private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?)  {
         networkManager.parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
         }
     }
     
-    private func addStoreCurrencystoCurrencyArrayForTable(_ arrayCurrencysFromCoreData:[String]){
+    private func addStoreCurrencystoCurrencyArrayForTable(_ arrayCurrencysFromCoreData:[String]) {
         
         guard let fullArrayCurrency = currencysFromInternet else {return}
         var mokcurrencysArray = [Currency]()
@@ -201,7 +200,6 @@ extension StartViewController {
     
     private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
         //Проверка на то что в хранилище есть данные
-        
         let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
         
         // Записываем массив имен валют из коре Даты которые у нас в основной таблице
@@ -241,12 +239,9 @@ extension StartViewController: UITableViewDelegate {
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
        
-        guard let cellCurrency = (tableView.cellForRow(at: indexPath) as! MainCell).currency else {return}
-        
         if editingStyle == .delete && indexPath.row != 0 {
-            print("delete row")
             currencysArray.remove(at: indexPath.row)
-            coreData.deleteCurrencyCore(currencyToDelete: cellCurrency)
+            coreData.deleteCurrencyCore(indexPath.row)
         }
     }
 }
@@ -316,7 +311,7 @@ extension StartViewController {
         view.addSubview(currencyView)
     }
 
-    private func setDelegateTable(){
+    private func setDelegateTable() {
         currencyView.currencyTable.dataSource = self
         currencyView.currencyTable.delegate = self
     }

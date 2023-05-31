@@ -48,7 +48,6 @@ class CurrencyListViewController: UIViewController {
     }
     
     private func fetchDataSourceForTable(model: [Currency]?) {
-            
         guard let models = model else {return}
         self.currencyTransform.createDataSourceHeaderAndSections(model: models)
             self.headerTitlesArray = self.currencyTransform.headerArray

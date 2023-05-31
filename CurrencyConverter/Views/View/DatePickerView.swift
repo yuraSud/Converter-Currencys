@@ -3,12 +3,12 @@ import UIKit
 
 class DatePickerView: UIView {
 
-    let view = UIView()
-    let titleLabel = UILabel()
     let datePicker = UIDatePicker()
     let okButton = UIButton(type: .system)
     let cancelButton = UIButton(type: .system)
-    var minimumDate: Date?
+    private let view = UIView()
+    private let titleLabel = UILabel()
+    private var minimumDate: Date?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -54,7 +54,7 @@ class DatePickerView: UIView {
         setSettingsShadowView()
     }
     
-    func configureButtons(){
+    func configureButtons() {
         okButton.setTitle("OK", for: .normal)
         cancelButton.setTitle("Cancel", for: .normal)
         cancelButton.setTitleColor(.red, for: .normal)
@@ -86,21 +86,14 @@ class DatePickerView: UIView {
         view.layer.masksToBounds = false
     }
     
-    func configureDatePicker(){
+    func configureDatePicker() {
         configureMinimumDate()
         datePicker.preferredDatePickerStyle = .wheels
         datePicker.maximumDate = Date()
         datePicker.minimumDate = minimumDate
         datePicker.datePickerMode = .date
         datePicker.locale = Locale(identifier: "uk")
-        
     }
-    
-//    func formateDate() -> String{
-//        let dateFormatter = DateFormatter()
-//        dateFormatter.dateFormat = "dd.MM.yyyy"
-//        return dateFormatter.string(from: datePicker.date)
-//    }
     
     func configureMinimumDate(){
         var dateComponents = DateComponents()
@@ -111,7 +104,7 @@ class DatePickerView: UIView {
         minimumDate = userCalendar.date(from: dateComponents)
     }
     
-    func setConstraints(){
+    func setConstraints() {
         NSLayoutConstraint.activate([
             view.centerXAnchor.constraint(equalTo: centerXAnchor),
             view.centerYAnchor.constraint(equalTo: centerYAnchor),

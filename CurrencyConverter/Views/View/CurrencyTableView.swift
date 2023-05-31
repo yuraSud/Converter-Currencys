@@ -14,7 +14,7 @@ class CurrencyTableView: UITableView {
         fatalError("init(coder:) has not been implemented")
     }
     
-    private func setupTable(){
+    private func setupTable() {
         translatesAutoresizingMaskIntoConstraints = false
         register(MainCell.self, forCellReuseIdentifier: CurrencyTableView.mainCellID)
         rowHeight = 65
