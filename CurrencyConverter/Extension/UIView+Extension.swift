@@ -5,10 +5,10 @@ extension UIView {
         UIGraphicsBeginImageContextWithOptions(self.bounds.size, true, UIScreen.main.scale)
         drawHierarchy(in: self.bounds, afterScreenUpdates: true)
         let image = UIGraphicsGetImageFromCurrentImageContext()
-        UIGraphicsEndImageContext()
+        //UIGraphicsEndImageContext()
         
-        if image != nil {
-            return image!
+        if let imageScreen = image {
+            return imageScreen
         }
         return UIImage()
     }

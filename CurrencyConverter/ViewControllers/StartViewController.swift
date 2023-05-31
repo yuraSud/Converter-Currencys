@@ -3,19 +3,21 @@ import CoreData
 
 class StartViewController: UIViewController {
     
-    private let numberRowsInMainTable = 6
-    private var currencysFromInternet: [Currency]?
-    private var arrayCurrencysFromCoreData = [String]()
+    let lastUpdatedLabel = UILabel()
     let currencyView = CurrencyView()
+    private let appNameLabel = UILabel()
     private var datepickerView: DatePickerView!
     private let backgroundImageView = UIImageView()
-    private let appNameLabel = UILabel()
-    let lastUpdatedLabel = UILabel()
     private let nationalBankExchangeRateButton = UIButton(type: .system)
-    private let coreData = CoreDataManager.instance
+    
     private var valueTF: Double = 1
+    private let numberRowsInMainTable = 6
+    private var currencysFromInternet: [Currency]?
     private var currensItemToReSave: Currency?
-   
+    private var arrayCurrencysFromCoreData = [String]()
+    private let coreData = CoreDataManager.instance
+    private let networkManager = NetworkManager()
+    
     var currencysArray:[Currency] = [] {
         didSet{
             DispatchQueue.main.async {
@@ -24,11 +26,13 @@ class StartViewController: UIViewController {
             reloadTable()
         }
     }
+    
     private var saleCourse = true {
         didSet{
             reloadTable()
         }
     }
+    
     private var nbuCourse = false
        
     private var dateFetchToLabel: Date! {
@@ -36,7 +40,6 @@ class StartViewController: UIViewController {
             updateDateLabel(dateUpdate: dateFetchToLabel)
         }
     }
-  
     
     //MARK: - Life cycle App:
     
@@ -66,11 +69,7 @@ class StartViewController: UIViewController {
     }
     
     @objc private func segmentAction(sender: UISegmentedControl) {
-        if sender.selectedSegmentIndex == 0 {
-            saleCourse = true
-        } else if sender.selectedSegmentIndex == 1 {
-            saleCourse = false
-        }
+        saleCourse = sender.selectedSegmentIndex == 0 ? true : false
     }
     
     @objc private func currencyNbuFromDate(){
@@ -130,52 +129,17 @@ class StartViewController: UIViewController {
         setDelegateTable()
     }
     
-    private func setUpView() {
-        view.addSubview(backgroundImageView)
-        backgroundImageView.addSubview(appNameLabel)
-        view.addSubview(lastUpdatedLabel)
-        view.addSubview(nationalBankExchangeRateButton)
-        view.addSubview(currencyView)
-    }
-    
-    func setDelegateTable(){
-        currencyView.currencyTable.dataSource = self
-        currencyView.currencyTable.delegate = self
-    }
-    
-    func addTargetButtons(){
+    private func addTargetButtons(){
         currencyView.addCurrencyButton.addTarget(self, action: #selector(addCurrency), for: .touchUpInside)
         currencyView.exchangeRateSegmentedControl.addTarget(self, action: #selector(segmentAction), for: .valueChanged)
         nationalBankExchangeRateButton.addTarget(self, action: #selector(currencyNbuFromDate), for: .touchUpInside)
         currencyView.shareButton.addTarget(self, action: #selector(choiseShared), for: .touchUpInside)
     }
     
-  func reloadTable(){
+    private func reloadTable(){
       DispatchQueue.main.async {
           self.currencyView.currencyTable.reloadData()
       }
-    }
-    
-    private func configBackgroundImageView() {
-        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
-        backgroundImageView.image = UIImage(named:  "image_background")
-    }
-    
-    private func configAppNameLabel() {
-        appNameLabel.translatesAutoresizingMaskIntoConstraints = false
-        appNameLabel.text = "Currency Converter"
-        appNameLabel.textColor = .white
-        appNameLabel.textAlignment = .left
-        appNameLabel.font = UIFont.boldSystemFont(ofSize: 24)
-    }
-    
-    private func configLastUpdatedLabel() {
-        lastUpdatedLabel.translatesAutoresizingMaskIntoConstraints = false
-        lastUpdatedLabel.text = "Last Updated\n26.04.2023 12:43"
-        lastUpdatedLabel.textColor = .systemGray
-        lastUpdatedLabel.numberOfLines = 2
-        lastUpdatedLabel.textAlignment = .left
-        lastUpdatedLabel.font = .systemFont(ofSize: 14)
     }
     
     private func updateDateLabel(dateUpdate: Date){
@@ -184,30 +148,12 @@ class StartViewController: UIViewController {
         }
     }
     
-    private func configNationalBankExchangeRateButton() {
-        nationalBankExchangeRateButton.translatesAutoresizingMaskIntoConstraints = false
-        nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
-        nationalBankExchangeRateButton.setTitleColor(UIColor.systemBlue, for: .normal)
-        nationalBankExchangeRateButton.layer.borderWidth = 1
-        nationalBankExchangeRateButton.layer.cornerRadius = 15
-        nationalBankExchangeRateButton.layer.borderColor = UIColor.systemBlue.cgColor
-        nationalBankExchangeRateButton.titleLabel?.font = .boldSystemFont(ofSize: 18)
-    }
-    
-    private func configCurrencyView() {
-        currencyView.translatesAutoresizingMaskIntoConstraints = false
-    }
-    
     private func fetchDataSourceForTableFromInternet(_ date: Date) {
-        NetworkManager().fetchCurrency(for: date) { (data, error)  in
+        networkManager.fetchCurrency(for: date) { (data, error)  in
             guard let data = data else {
-                print("!!! данные с интернета не получены")
-                DispatchQueue.main.async {
-                    self.alertNoInternet()
-                }
+                self.alertNoInternet()
                 return
             }
-            print("данные с интернета получены")
             self.coreData.newjsonCurrencys(jsonCurrencyData: data, date: date)
             self.transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(data)
             self.addStoreCurrencystoCurrencyArrayForTable(self.arrayCurrencysFromCoreData)
@@ -216,40 +162,19 @@ class StartViewController: UIViewController {
     }
     
     private func alertNoInternet(){
-        let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
-        let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
-            self.lastUpdatedLabel.text = "Not internet\nConnection"
-            self.currencysArray = []
+        DispatchQueue.main.async {
+            let alert = UIAlertController(title: "Attention\nData not received.", message: "Please check your internet connection", preferredStyle: .alert)
+            let actionOk = UIAlertAction(title: "OK", style: .cancel){_ in
+                self.lastUpdatedLabel.text = "Not internet\nConnection"
+                self.currencysArray = []
+            }
+            alert.addAction(actionOk)
+            self.present(alert, animated: true)
         }
-        alert.addAction(actionOk)
-        present(alert, animated: true)
-    }
-    
-    private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
-        //Проверка на то что в хранилище есть данные
-        
-        let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
-        
-        // Записываем массив имен валют из коре Даты которые у нас в основной таблице
-        arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
-        
-        print(arrayCurrencysFromCoreData, "Array bykv")
-        
-        guard let jsonData = jsonCurrencys?.jsonData else {
-            print("дата не получил с коре")
-           
-            //Если отсутствуют то берем данные с интернета
-            fetchDataSourceForTableFromInternet(dateToFetch)
-            return}
-        
-        // Берем данные с кореДата и трансформируем их
-        dateFetchToLabel = jsonCurrencys?.dateFetch
-        transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(jsonData)
-        addStoreCurrencystoCurrencyArrayForTable(arrayCurrencysFromCoreData)
     }
     
     private func transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(_ jsonData: Data?) {
-        NetworkManager().parseCurrency(jsonData) { model in
+        networkManager.parseCurrency(jsonData) { model in
             self.currencysFromInternet = model?.currencys
         }
     }
@@ -267,6 +192,30 @@ class StartViewController: UIViewController {
             }
         }
         currencysArray = mokcurrencysArray
+    }
+}
+
+//MARK: - CoreData:
+
+extension StartViewController {
+    
+    private func fetchDataSourceForTableFromCoreData(_ dateToFetch: Date) {
+        //Проверка на то что в хранилище есть данные
+        
+        let jsonCurrencys = coreData.getJsonCurrencysForDate(date: dateToFetch)
+        
+        // Записываем массив имен валют из коре Даты которые у нас в основной таблице
+        arrayCurrencysFromCoreData = coreData.getCurrencyFromCore()
+        
+        guard let jsonData = jsonCurrencys?.jsonData else {
+            //Если отсутствуют то берем данные с интернета
+            fetchDataSourceForTableFromInternet(dateToFetch)
+            return}
+        
+        // Берем данные с кореДата и трансформируем их
+        dateFetchToLabel = jsonCurrencys?.dateFetch
+        transformDataToCurrencyModelAndRecordCurrencyArrayFromInternet(jsonData)
+        addStoreCurrencystoCurrencyArrayForTable(arrayCurrencysFromCoreData)
     }
 }
     
@@ -352,6 +301,60 @@ extension StartViewController: UITextFieldDelegate {
         let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
         
         return updatedText.noDigits()
+    }
+}
+
+//MARK: -  UIConfiguration:
+
+extension StartViewController {
+    
+    private func setUpView() {
+        view.addSubview(backgroundImageView)
+        backgroundImageView.addSubview(appNameLabel)
+        view.addSubview(lastUpdatedLabel)
+        view.addSubview(nationalBankExchangeRateButton)
+        view.addSubview(currencyView)
+    }
+
+    private func setDelegateTable(){
+        currencyView.currencyTable.dataSource = self
+        currencyView.currencyTable.delegate = self
+    }
+    
+    private func configBackgroundImageView() {
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundImageView.image = UIImage(named:  "image_background")
+    }
+    
+    private func configAppNameLabel() {
+        appNameLabel.translatesAutoresizingMaskIntoConstraints = false
+        appNameLabel.text = "Currency Converter"
+        appNameLabel.textColor = .white
+        appNameLabel.textAlignment = .left
+        appNameLabel.font = UIFont.boldSystemFont(ofSize: 24)
+    }
+    
+    private func configLastUpdatedLabel() {
+        lastUpdatedLabel.translatesAutoresizingMaskIntoConstraints = false
+        lastUpdatedLabel.text = "Last Updated\n26.04.2023 12:43"
+        lastUpdatedLabel.textColor = .systemGray
+        lastUpdatedLabel.numberOfLines = 2
+        lastUpdatedLabel.textAlignment = .left
+        lastUpdatedLabel.font = .systemFont(ofSize: 14)
+    }
+    
+    private func configNationalBankExchangeRateButton() {
+        nationalBankExchangeRateButton.translatesAutoresizingMaskIntoConstraints = false
+        nationalBankExchangeRateButton.setTitle("National Bank Exchange Rate", for: .normal)
+        nationalBankExchangeRateButton.setTitleColor(UIColor.systemBlue, for: .normal)
+        nationalBankExchangeRateButton.layer.borderWidth = 1
+        nationalBankExchangeRateButton.layer.cornerRadius = 15
+        nationalBankExchangeRateButton.layer.borderColor = UIColor.systemBlue.cgColor
+        nationalBankExchangeRateButton.titleLabel?.font = .boldSystemFont(ofSize: 18)
+    }
+    
+    private func configCurrencyView() {
+        currencyView.translatesAutoresizingMaskIntoConstraints = false
     }
 }
 
