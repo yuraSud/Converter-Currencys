@@ -4,9 +4,8 @@
 //
 //  Created by YURA																			 on 30.05.2023.
 //
-//import XCTest
+
 import CoreData
-//@testable import CurrencyConverter
 
 struct CoreDataTestStack {
         

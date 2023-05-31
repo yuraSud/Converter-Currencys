@@ -1,36 +1,27 @@
 import CoreData
 import UIKit
 
-open class CoreDataManager {
+class CoreDataManager {
    
     static let instance = CoreDataManager()
     
-    let persistentContainer: NSPersistentContainer
     let context: NSManagedObjectContext
     
+    var persistentContainer = {
+        let container = NSPersistentContainer(name: "CurrencyConverter")
+        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            if let error = error as NSError? {
+                fatalError("Unresolved error \(error), \(error.userInfo)")
+            }
+        })
+        return container
+    }()
+    
     private init() {
-        persistentContainer = {
-            let container = NSPersistentContainer(name: "CurrencyConverter")
-            container.loadPersistentStores(completionHandler: { (storeDescription, error) in
-                if let error = error as NSError? {
-                    fatalError("Unresolved error \(error), \(error.userInfo)")
-                }
-            })
-            return container
-        }()
-        context = persistentContainer.viewContext
+        self.context = self.persistentContainer.viewContext
     }
     
-    public init(_ mainContext: NSManagedObjectContext) {
-        persistentContainer = NSPersistentContainer(name: "CurrencyConverter")
-        let description = persistentContainer.persistentStoreDescriptions.first
-        description?.type = NSSQLiteStoreType
-        
-        persistentContainer.loadPersistentStores { description, error in
-            guard error == nil else {
-                fatalError("was unable to load store \(error!)")
-            }
-        }
+    init(_ mainContext: NSManagedObjectContext) {
         self.context = mainContext
     }
     
@@ -96,7 +87,7 @@ open class CoreDataManager {
         saveContext()
     }
     
-    //Delete CurrencyCore 
+    //Delete CurrencyCore
     func deleteCurrencyCore(currencyToDelete: Currency){
         var currencyCores: [CurrencyCore] = []
         let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")

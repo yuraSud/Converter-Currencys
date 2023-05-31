@@ -50,7 +50,7 @@ final class CurrencyConverterTests: XCTestCase {
     }
     
     func testCreateAndGetJsonCurrencies() {
-        let dataForTest = Data("Оля барашка".utf8)
+        let dataForTest = Data("Test String".utf8)
         //Create JsonCurrency
         coreDataManager.newjsonCurrencys(jsonCurrencyData: dataForTest, date: Date())
         
@@ -59,9 +59,9 @@ final class CurrencyConverterTests: XCTestCase {
         dateComponents.year = 2023
         dateComponents.month = 4
         dateComponents.day = 15
-        let dateMock = Calendar.current.date(from: dateComponents)!
+        let dateTest = Calendar.current.date(from: dateComponents)!
         
-        let jsonCurrencyNil = coreDataManager.getJsonCurrencysForDate(date: dateMock)
+        let jsonCurrencyNil = coreDataManager.getJsonCurrencysForDate(date: dateTest)
         XCTAssertNil(jsonCurrencyNil)
         
         let jsonCurrency = coreDataManager.getJsonCurrencysForDate(date: Date())
@@ -69,7 +69,7 @@ final class CurrencyConverterTests: XCTestCase {
         XCTAssertNotNil(jsonCurrency?.jsonData)
         
         let stringFromData = String(decoding: (jsonCurrency?.jsonData)!, as: UTF8.self)
-        XCTAssertEqual(stringFromData, "Оля барашка")
+        XCTAssertEqual(stringFromData, "Test String")
         XCTAssertNotEqual(stringFromData, "USD")
     }
 
