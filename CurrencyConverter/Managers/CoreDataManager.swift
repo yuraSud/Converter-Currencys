@@ -2,27 +2,31 @@ import CoreData
 import UIKit
 
 class CoreDataManager {
-   
+    
     static let instance = CoreDataManager()
     
-    let context: NSManagedObjectContext
+    let persistentContainer: NSPersistentContainer
+    lazy var context = persistentContainer.viewContext
     
-    var persistentContainer = {
-        let container = NSPersistentContainer(name: "CurrencyConverter")
-        container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+    private init() {
+        persistentContainer = NSPersistentContainer(name: "CurrencyConverter")
+        persistentContainer.loadPersistentStores{ (storeDescription, error) in
             if let error = error as NSError? {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
-        })
-        return container
-    }()
-    
-    private init() {
-        self.context = self.persistentContainer.viewContext
+        }
     }
     
-    init(_ mainContext: NSManagedObjectContext) {
-        self.context = mainContext
+    //Init for tests
+    init(_ test: String? = nil) {
+        persistentContainer = NSPersistentContainer(name: "CurrencyConverter")
+        persistentContainer.persistentStoreDescriptions.first?.type = NSInMemoryStoreType
+        
+        persistentContainer.loadPersistentStores { description, error in
+            guard error == nil else {
+                fatalError("was unable to load store \(error!)")
+            }
+        }
     }
     
     //Return JsonCurrencys from CoreData if date store difference current Date less 20 hours
@@ -44,24 +48,24 @@ class CoreDataManager {
     
     //Return Name Currencys from CoreData which are displayed in the main table
     func getCurrencyFromCore() -> [String] {
-            var currencyCore: [CurrencyCore] = []
-            let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
-            
-            let sortDescriptorToIdTime = NSSortDescriptor(key: #keyPath(CurrencyCore.idTime), ascending: true)
-            fetchRequest.sortDescriptors = [sortDescriptorToIdTime]
-            
-            do{
-                currencyCore = try context.fetch(fetchRequest)
-            } catch {
-                print("not fetch users")
-            }
-            var array = [String]()
-            currencyCore.forEach { item in
-                array.append(item.currencyName ?? "")
-            }
-            return array
+        var currencyCore: [CurrencyCore] = []
+        let fetchRequest = NSFetchRequest<CurrencyCore>(entityName: "CurrencyCore")
+        
+        let sortDescriptorToIdTime = NSSortDescriptor(key: #keyPath(CurrencyCore.idTime), ascending: true)
+        fetchRequest.sortDescriptors = [sortDescriptorToIdTime]
+        
+        do{
+            currencyCore = try context.fetch(fetchRequest)
+        } catch {
+            print("not fetch users")
         }
-   
+        var array = [String]()
+        currencyCore.forEach { item in
+            array.append(item.currencyName ?? "")
+        }
+        return array
+    }
+    
     //Create CurrencyCore entity from Currency and save in CoreData
     func newCurrencyCore(_ currency: Currency) {
         let newCurrencyCore = CurrencyCore(context: context)
@@ -101,9 +105,9 @@ class CoreDataManager {
             print("not fetch users")
         }
     }
-
+    
     // MARK: - Core Data Saving support
-
+    
     func saveContext () {
         if context.hasChanges {
             do {

@@ -6,12 +6,10 @@ import CoreData
 final class CurrencyConverterTests: XCTestCase {
 
     var coreDataManager: CoreDataManager!
-    var coreDataTestStack: CoreDataTestStack!
 
     override func setUp() {
         super.setUp()
-        coreDataTestStack = CoreDataTestStack()
-        coreDataManager = CoreDataManager(coreDataTestStack.mainContext)
+        coreDataManager = CoreDataManager()
     }
 
     func testCreateCurrencyCoreFromString() {
@@ -29,9 +27,7 @@ final class CurrencyConverterTests: XCTestCase {
         var currencyArrayInCore = coreDataManager.getCurrencyFromCore()
         XCTAssertEqual(currencyArrayInCore.count, 3)
         
-        let currencyEuro = Currency(baseCurrency: nil, currency: "Euro", saleRateNB: nil, purchaseRateNB: nil, saleRate: nil, purchaseRate: nil)
-        
-        coreDataManager.deleteCurrencyCore(currencyToDelete: currencyEuro)
+        coreDataManager.deleteCurrencyCore(0)
         currencyArrayInCore = coreDataManager.getCurrencyFromCore()
         
         XCTAssertEqual(currencyArrayInCore.count, 2)

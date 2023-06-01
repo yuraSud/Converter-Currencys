@@ -31,8 +31,8 @@ final class CurrencyNetworkTest: XCTestCase {
                 XCTFail("Error: \(error.localizedDescription)")
                 return
             }
-            XCTAssertNotNil(data)
             expectation.fulfill()
+            XCTAssertNotNil(data)
         }
         wait(for: [expectation], timeout: 10)
     }
