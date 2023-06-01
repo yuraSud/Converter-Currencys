@@ -20,7 +20,7 @@ class CurrencyView: UIView {
     
 //MARK: - Functions:
     
-    private func configureView(){
+    private func configureView() {
         setSettingsView()
         configExchangeRateSegmentedControl()
         configAddCurrencyButton()
@@ -63,14 +63,11 @@ class CurrencyView: UIView {
         addCurrencyButton.setImage(UIImage(named: "blue_plus"), for: .normal)
         addCurrencyButton.setTitleColor(UIColor.systemBlue, for: .normal)
         addCurrencyButton.titleLabel?.font = .systemFont(ofSize: 14)
-//        addCurrencyButton.addTarget(self, action: #selector(), for: .touchUpInside)
     }
     
     private func configShareButton() {
         shareButton.translatesAutoresizingMaskIntoConstraints = false
         shareButton.setBackgroundImage(UIImage(named: "square.and.arrow.up"), for: .normal)
-       
-//        shareButton.addTarget(self, action: #selector(), for: .touchUpInside)
     }
 
 //MARK: - Constraints:
@@ -96,6 +93,4 @@ class CurrencyView: UIView {
             shareButton.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10)
         ])
     }
-    
-    
 }

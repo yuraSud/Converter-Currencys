@@ -15,12 +15,12 @@ enum BaseCurrency: String, Codable {
 
 // MARK: - Currency
 struct Currency: Codable {
-    let baseCurrency: BaseCurrency?
+    var baseCurrency: BaseCurrency?
     let currency: String
-    let saleRateNB: Double?
-    let purchaseRateNB: Double?
-    let saleRate: Double?
-    let purchaseRate: Double?
+    var saleRateNB: Double?
+    var purchaseRateNB: Double?
+    var saleRate: Double?
+    var purchaseRate: Double?
     var textFieldDoubleValue: Double?
     
     var fullDescription: String {
@@ -30,3 +30,5 @@ struct Currency: Codable {
         return currency[currency.startIndex].uppercased()
     }
 }
+
+

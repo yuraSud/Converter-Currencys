@@ -1,9 +1,6 @@
 import Foundation
-import CoreData
 
 struct NetworkManager {
-    
-    lazy var coreData = CoreDataManager.instance
     
     func fetchCurrency(for date: Date, completionhandler: @escaping (Data?,Error?) ->(Void) ) {
         
@@ -23,15 +20,12 @@ struct NetworkManager {
                !(200...299).contains(response.statusCode) {
                 completionhandler(nil, NetworkRequestError.statusCode)
             }
-            print("Получил дата с интернета")
-            //if let currency = parseJSON(data: data) {
-                completionhandler(data, nil)
-            //}
+            completionhandler(data, nil)
         }
         task.resume()
     }
     
-    func parseCurrency(_ jsonData: Data?, completionhandler: @escaping (CurrencyModel?)->()){
+    func parseCurrency(_ jsonData: Data?, completionhandler: @escaping (CurrencyModel?)->()) {
         guard let data = jsonData else {
             completionhandler(nil)
             return

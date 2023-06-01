@@ -20,23 +20,25 @@ extension UILabel {
         rightAttachment.bounds = CGRect(x: 0, y: -5, width: 20, height: 20)
         let rightAttachmentStr = NSAttributedString(attachment: rightAttachment)
 
-
         if semanticContentAttribute == .forceRightToLeft {
             if rightIcon != nil {
                 myString.append(rightAttachmentStr)
                 myString.append(NSAttributedString(string: " "))
             }
+            
             myString.append(NSAttributedString(string: text))
             if leftIcon != nil {
                 myString.append(NSAttributedString(string: " "))
                 myString.append(leftAttachmentStr)
             }
+            
         } else {
             if leftIcon != nil {
                 myString.append(leftAttachmentStr)
                 myString.append(NSAttributedString(string: " "))
             }
             myString.append(NSAttributedString(string: text))
+            
             if rightIcon != nil {
                 myString.append(NSAttributedString(string: " "))
                 myString.append(rightAttachmentStr)

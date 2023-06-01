@@ -29,7 +29,7 @@ class MainCell: UITableViewCell {
         stack.frame = CGRect(x: 10, y: 8, width: contentView.frame.width - 20, height: contentView.frame.height - 16)
     }
     
-    func setLabel(sell: Bool, nbu: Bool, valueFromTF: Double){
+    func setLabel(sell: Bool, nbu: Bool, valueFromTF: Double) {
         guard let currency = currency else {return}
         currencyLabel.setLabelRightIcon(text: currency.currency, rightIcon: UIImage(systemName: "chevron.right"))
         contentView.isUserInteractionEnabled = true
@@ -55,7 +55,7 @@ class MainCell: UITableViewCell {
         }
     }
     
-    private func setupStackView(){
+    private func setupStackView() {
         currencyTextField.setContentHuggingPriority(.init(200), for: .horizontal)
         stack = UIStackView(arrangedSubviews: [currencyLabel,currencyTextField])
         stack.axis = .horizontal
@@ -64,7 +64,7 @@ class MainCell: UITableViewCell {
         addSubview(stack)
     }
     
-    private func setupTextField(){
+    private func setupTextField() {
         currencyTextField.borderStyle = .roundedRect
         currencyTextField.backgroundColor = .secondarySystemBackground
         currencyTextField.keyboardType = .numberPad
